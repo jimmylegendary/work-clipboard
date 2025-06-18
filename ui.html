@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>양산 부사수</title>
+    <title>자동화 서비스 진행상황 모니터</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -44,6 +44,21 @@
             }
         }
         
+        @keyframes activate {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            }
+            50% {
+                transform: scale(1.02);
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            }
+        }
+        
         .spin {
             animation: spin 2s linear infinite;
         }
@@ -60,15 +75,8 @@
             animation: bounce 0.8s ease-out;
         }
         
-        .process-step {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        
-        .process-step.visible {
-            opacity: 1;
-            transform: translateY(0);
-            transition: all 0.6s ease-out;
+        .activate-animation {
+            animation: activate 0.6s ease-out;
         }
         
         .step-card {
@@ -77,10 +85,29 @@
             background: #ffffff;
         }
         
-        .step-card:hover {
+        .step-card.inactive {
+            opacity: 0.4;
+            border-color: #f3f4f6;
+            background: #f9fafb;
+            pointer-events: none;
+        }
+        
+        .step-card.active {
+            opacity: 1;
+            border-color: #3b82f6;
+            background: #ffffff;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .step-card.completed {
+            opacity: 1;
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+        
+        .step-card:hover.active {
             transform: translateY(-2px);
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            border-color: #3b82f6;
         }
         
         .progress-bar {
@@ -111,6 +138,14 @@
             color: white;
             animation: pulse 1.5s infinite;
         }
+
+        .inactive-icon {
+            opacity: 0.3;
+        }
+
+        .inactive-text {
+            color: #9ca3af;
+        }
     </style>
 </head>
 <body class="min-h-screen bg-white">
@@ -119,7 +154,7 @@
         <div class="header-card text-center">
             <h1 class="text-4xl font-bold text-white mb-4">
                 <i class="fas fa-cogs mr-3"></i>
-                안녕하세요, 양산 부사수입니다.
+                자동화 서비스 모니터
             </h1>
             <p class="text-xl text-white opacity-90">실시간 프로세스 진행상황을 확인하세요</p>
             <div class="mt-4">
@@ -161,80 +196,80 @@
             </div>
         </div>
 
-        <!-- Process Steps -->
+        <!-- Process Steps - All visible from start but inactive -->
         <div class="space-y-6" id="processContainer">
             <!-- DB 조회 -->
-            <div class="process-step visible step-card rounded-xl p-6" data-phase="DB 조회">
+            <div class="step-card inactive rounded-xl p-6" data-phase="DB 조회">
                 <div class="flex items-center">
                     <div class="flex-shrink-0 w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mr-4">
-                        <i class="fas fa-database text-2xl text-blue-600 status-icon" data-status="waiting"></i>
+                        <i class="fas fa-database text-2xl text-blue-600 status-icon inactive-icon" data-status="waiting"></i>
                     </div>
                     <div class="flex-1">
                         <h3 class="text-xl font-semibold text-gray-800 mb-2">데이터베이스 조회</h3>
                         <p class="text-gray-600">필요한 데이터를 데이터베이스에서 조회하고 있습니다.</p>
                         <div class="mt-2">
-                            <span class="status-text text-gray-700 text-sm font-medium">대기 중...</span>
+                            <span class="status-text inactive-text text-sm font-medium">대기 중...</span>
                         </div>
                     </div>
                     <div class="status-indicator">
-                        <i class="fas fa-clock text-gray-400 text-xl"></i>
+                        <i class="fas fa-clock text-gray-300 text-xl"></i>
                     </div>
                 </div>
             </div>
 
             <!-- 차트 그리기 -->
-            <div class="process-step step-card rounded-xl p-6" data-phase="차트 그리기">
+            <div class="step-card inactive rounded-xl p-6" data-phase="차트 그리기">
                 <div class="flex items-center">
                     <div class="flex-shrink-0 w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mr-4">
-                        <i class="fas fa-chart-line text-2xl text-green-600 status-icon" data-status="waiting"></i>
+                        <i class="fas fa-chart-line text-2xl text-green-600 status-icon inactive-icon" data-status="waiting"></i>
                     </div>
                     <div class="flex-1">
                         <h3 class="text-xl font-semibold text-gray-800 mb-2">차트 생성</h3>
                         <p class="text-gray-600">조회된 데이터를 기반으로 시각화 차트를 생성합니다.</p>
                         <div class="mt-2">
-                            <span class="status-text text-gray-700 text-sm font-medium">대기 중...</span>
+                            <span class="status-text inactive-text text-sm font-medium">대기 중...</span>
                         </div>
                     </div>
                     <div class="status-indicator">
-                        <i class="fas fa-clock text-gray-400 text-xl"></i>
+                        <i class="fas fa-clock text-gray-300 text-xl"></i>
                     </div>
                 </div>
             </div>
 
             <!-- LLM 분석 -->
-            <div class="process-step step-card rounded-xl p-6" data-phase="LLM 분석">
+            <div class="step-card inactive rounded-xl p-6" data-phase="LLM 분석">
                 <div class="flex items-center">
                     <div class="flex-shrink-0 w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center mr-4">
-                        <i class="fas fa-brain text-2xl text-purple-600 status-icon" data-status="waiting"></i>
+                        <i class="fas fa-brain text-2xl text-purple-600 status-icon inactive-icon" data-status="waiting"></i>
                     </div>
                     <div class="flex-1">
                         <h3 class="text-xl font-semibold text-gray-800 mb-2">AI 분석</h3>
                         <p class="text-gray-600">생성된 차트와 데이터를 AI가 분석하여 인사이트를 도출합니다.</p>
                         <div class="mt-2">
-                            <span class="status-text text-gray-700 text-sm font-medium">대기 중...</span>
+                            <span class="status-text inactive-text text-sm font-medium">대기 중...</span>
                         </div>
                     </div>
                     <div class="status-indicator">
-                        <i class="fas fa-clock text-gray-400 text-xl"></i>
+                        <i class="fas fa-clock text-gray-300 text-xl"></i>
                     </div>
                 </div>
             </div>
 
             <!-- 결과 공유 -->
-            <div class="process-step step-card rounded-xl p-6" data-phase="결과 공유">
+            <div class="step-card inactive rounded-xl p-6" data-phase="결과 공유">
                 <div class="flex items-center">
                     <div class="flex-shrink-0 w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center mr-4">
-                        <i class="fas fa-share-alt text-2xl text-orange-600 status-icon" data-status="waiting"></i>
+                        <i class="fas fa-share-alt text-2xl text-orange-600 status-icon inactive-icon" data-status="waiting"></i>
                     </div>
                     <div class="flex-1">
                         <h3 class="text-xl font-semibold text-gray-800 mb-2">결과 공유</h3>
                         <p class="text-gray-600">분석 결과를 정리하여 최종 리포트를 생성하고 공유합니다.</p>
                         <div class="mt-2">
-                            <span class="status-text text-gray-700 text-sm font-medium">대기 중...</span>
+                            <span class="status-text inactive-text text-sm font-medium">대기 중...</span>
                         </div>
                     </div>
                     <div class="status-indicator">
-                        <i class="fas fa-clock text-gray-400 text-xl"></i>
+                        <i class="fas fa-clock text-gray-300 text-xl"></i>
                     </div>
                 </div>
             </div>
@@ -462,18 +497,32 @@
             }
         }
 
+        function activateStep(stepElement) {
+            if (stepElement.classList.contains('inactive')) {
+                stepElement.classList.remove('inactive');
+                stepElement.classList.add('active', 'activate-animation');
+                
+                // Remove animation class after animation ends
+                setTimeout(() => {
+                    stepElement.classList.remove('activate-animation');
+                }, 600);
+            }
+        }
+
         function updateProcessStep(phase, status) {
             const stepElement = document.querySelector(`[data-phase="${phase}"]`);
             if (!stepElement) return;
 
-            // Show step if not visible
-            if (!stepElement.classList.contains('visible')) {
-                showNextStep(phase);
-            }
+            // Activate step if it's inactive
+            activateStep(stepElement);
 
             const statusIcon = stepElement.querySelector('.status-icon');
             const statusText = stepElement.querySelector('.status-text');
             const statusIndicator = stepElement.querySelector('.status-indicator');
+
+            // Remove inactive styling from icon and text
+            statusIcon.classList.remove('inactive-icon');
+            statusText.classList.remove('inactive-text');
 
             // Update icon and status based on status
             switch (status) {
@@ -481,6 +530,7 @@
                 case 'pending':
                     statusIcon.className = 'fas fa-clock text-2xl text-gray-500 status-icon pulse';
                     statusText.textContent = '대기 중...';
+                    statusText.className = 'status-text text-gray-700 text-sm font-medium';
                     statusIndicator.innerHTML = '<i class="fas fa-clock text-gray-400 text-xl pulse"></i>';
                     break;
                 
@@ -489,6 +539,7 @@
                 case 'in_progress':
                     statusIcon.className = 'fas fa-hourglass-half text-2xl text-yellow-500 status-icon spin';
                     statusText.textContent = '진행 중...';
+                    statusText.className = 'status-text text-yellow-700 text-sm font-medium';
                     statusIndicator.innerHTML = '<i class="fas fa-spinner text-yellow-500 text-xl spin"></i>';
                     updateStatusIndicator(`🔄 ${phase} 진행 중...`, 'processing');
                     break;
@@ -498,27 +549,16 @@
                 case 'finished':
                     statusIcon.className = 'fas fa-check-circle text-2xl text-green-500 status-icon bounce-in';
                     statusText.textContent = '완료';
+                    statusText.className = 'status-text text-green-700 text-sm font-medium';
                     statusIndicator.innerHTML = '<i class="fas fa-check text-green-500 text-xl bounce-in"></i>';
+                    stepElement.classList.remove('active');
+                    stepElement.classList.add('completed');
                     
                     if (!completedPhases.includes(phase)) {
                         completedPhases.push(phase);
                         updateOverallProgress();
-                        showNextStep();
                     }
                     break;
-            }
-        }
-
-        function showNextStep(currentPhase = null) {
-            const steps = document.querySelectorAll('.process-step');
-            let nextStepIndex = currentPhase ? 
-                phases.indexOf(currentPhase) + 1 : 
-                document.querySelectorAll('.process-step.visible').length;
-
-            if (nextStepIndex < steps.length) {
-                setTimeout(() => {
-                    steps[nextStepIndex].classList.add('visible', 'fade-in-up');
-                }, 500);
             }
         }
 
@@ -599,14 +639,6 @@
 
         // Initialize on page load - AUTO START
         window.addEventListener('load', () => {
-            // Show only first step initially
-            const steps = document.querySelectorAll('.process-step');
-            steps.forEach((step, index) => {
-                if (index > 0) {
-                    step.classList.remove('visible');
-                }
-            });
-            
             // Auto start the process
             setTimeout(() => {
                 startAutomation();
