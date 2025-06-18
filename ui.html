@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>양산 부사수</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 53%, 80%, 100% {
+                transform: translate3d(0,0,0);
+            }
+            40%, 43% {
+                transform: translate3d(0, -8px, 0);
+            }
+            70% {
+                transform: translate3d(0, -4px, 0);
+            }
+            90% {
+                transform: translate3d(0, -2px, 0);
+            }
+        }
+        
+        .spin {
+            animation: spin 2s linear infinite;
+        }
+        
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        .bounce-in {
+            animation: bounce 0.8s ease-out;
+        }
+        
+        .process-step {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        .process-step.visible {
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 0.6s ease-out;
+        }
+        
+        .step-card {
+            transition: all 0.3s ease;
+            border: 2px solid #e5e7eb;
+            background: #ffffff;
+        }
+        
+        .step-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border-color: #3b82f6;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: linear-gradient(90deg, #4f46e5, #7c3aed);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .header-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-card {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .status-starting {
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            color: white;
+            animation: pulse 1.5s infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-white">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="header-card text-center">
+            <h1 class="text-4xl font-bold text-white mb-4">
+                <i class="fas fa-cogs mr-3"></i>
+                안녕하세요, 양산 부사수입니다.
+            </h1>
+            <p class="text-xl text-white opacity-90">실시간 프로세스 진행상황을 확인하세요</p>
+            <div class="mt-4">
+                <span class="text-white opacity-75">작업 ID: </span>
+                <span id="workId" class="text-white font-mono bg-black bg-opacity-20 px-3 py-1 rounded-full"></span>
+            </div>
+            <div class="mt-4" id="statusIndicator">
+                <span class="status-starting px-4 py-2 rounded-full font-semibold">
+                    <i class="fas fa-spinner spin mr-2"></i>자동화 시작 중...
+                </span>
+            </div>
+        </div>
+
+        <!-- Received Data Display -->
+        <div class="progress-card" id="dataCard" style="display: none;">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">
+                <i class="fas fa-info-circle mr-2"></i>수신된 데이터
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">사용자 ID</label>
+                    <span id="receivedUserId" class="block bg-gray-100 px-3 py-2 rounded-md font-mono"></span>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">DB 쿼리</label>
+                    <span id="receivedDbQuery" class="block bg-gray-100 px-3 py-2 rounded-md font-mono text-sm"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overall Progress -->
+        <div class="progress-card">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-semibold text-gray-800">전체 진행률</h2>
+                <span id="overallProgress" class="text-2xl font-bold text-purple-600">0%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-3">
+                <div id="progressBar" class="progress-bar h-3 rounded-full" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Process Steps -->
+        <div class="space-y-6" id="processContainer">
+            <!-- DB 조회 -->
+            <div class="process-step visible step-card rounded-xl p-6" data-phase="DB 조회">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+                        <i class="fas fa-database text-2xl text-blue-600 status-icon" data-status="waiting"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">데이터베이스 조회</h3>
+                        <p class="text-gray-600">필요한 데이터를 데이터베이스에서 조회하고 있습니다.</p>
+                        <div class="mt-2">
+                            <span class="status-text text-gray-700 text-sm font-medium">대기 중...</span>
+                        </div>
+                    </div>
+                    <div class="status-indicator">
+                        <i class="fas fa-clock text-gray-400 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 차트 그리기 -->
+            <div class="process-step step-card rounded-xl p-6" data-phase="차트 그리기">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mr-4">
+                        <i class="fas fa-chart-line text-2xl text-green-600 status-icon" data-status="waiting"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">차트 생성</h3>
+                        <p class="text-gray-600">조회된 데이터를 기반으로 시각화 차트를 생성합니다.</p>
+                        <div class="mt-2">
+                            <span class="status-text text-gray-700 text-sm font-medium">대기 중...</span>
+                        </div>
+                    </div>
+                    <div class="status-indicator">
+                        <i class="fas fa-clock text-gray-400 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LLM 분석 -->
+            <div class="process-step step-card rounded-xl p-6" data-phase="LLM 분석">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center mr-4">
+                        <i class="fas fa-brain text-2xl text-purple-600 status-icon" data-status="waiting"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">AI 분석</h3>
+                        <p class="text-gray-600">생성된 차트와 데이터를 AI가 분석하여 인사이트를 도출합니다.</p>
+                        <div class="mt-2">
+                            <span class="status-text text-gray-700 text-sm font-medium">대기 중...</span>
+                        </div>
+                    </div>
+                    <div class="status-indicator">
+                        <i class="fas fa-clock text-gray-400 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 결과 공유 -->
+            <div class="process-step step-card rounded-xl p-6" data-phase="결과 공유">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center mr-4">
+                        <i class="fas fa-share-alt text-2xl text-orange-600 status-icon" data-status="waiting"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">결과 공유</h3>
+                        <p class="text-gray-600">분석 결과를 정리하여 최종 리포트를 생성하고 공유합니다.</p>
+                        <div class="mt-2">
+                            <span class="status-text text-gray-700 text-sm font-medium">대기 중...</span>
+                        </div>
+                    </div>
+                    <div class="status-indicator">
+                        <i class="fas fa-clock text-gray-400 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Messages -->
+        <div id="messagesContainer" class="mt-8 space-y-4">
+            <!-- Dynamic messages will be added here -->
+        </div>
+    </div>
+
+    <script>
+        // 설정 변수들 - 실제 값으로 수정하세요
+        const CONFIG = {
+            SUPABASE_URL: 'https://your-project.supabase.co',
+            SUPABASE_ANON_KEY: 'your-supabase-anon-key',
+            WEBHOOK_URL: 'https://your-n8n-webhook-url',
+            TABLE_NAME: 'working',
+            POLLING_INTERVAL: 3000
+        };
+
+        let supabase = null;
+        let currentUuid = null;
+        let subscription = null;
+        let pollingInterval = null;
+        const phases = ['DB 조회', '차트 그리기', 'LLM 분석', '결과 공유'];
+        let currentPhaseIndex = 0;
+        let completedPhases = [];
+        let receivedData = {};
+
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        function parseUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const data = {};
+            
+            // Parse URL parameters
+            data.userId = urlParams.get('userId') || urlParams.get('user_id');
+            data.dbQuery = urlParams.get('dbQuery') || urlParams.get('db_query') || urlParams.get('query');
+            data.workflowId = urlParams.get('workflowId') || urlParams.get('workflow_id');
+            
+            // Try to get data from hash fragment as well
+            const hashParams = new URLSearchParams(window.location.hash.substring(1));
+            if (!data.userId) data.userId = hashParams.get('userId') || hashParams.get('user_id');
+            if (!data.dbQuery) data.dbQuery = hashParams.get('dbQuery') || hashParams.get('db_query') || hashParams.get('query');
+            if (!data.workflowId) data.workflowId = hashParams.get('workflowId') || hashParams.get('workflow_id');
+            
+            return data;
+        }
+
+        function displayReceivedData(data) {
+            if (data.userId || data.dbQuery) {
+                document.getElementById('dataCard').style.display = 'block';
+                document.getElementById('receivedUserId').textContent = data.userId || 'N/A';
+                document.getElementById('receivedDbQuery').textContent = data.dbQuery || 'N/A';
+            }
+        }
+
+        function initializeSupabase() {
+            if (!CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_ANON_KEY) {
+                addMessage('❌ Supabase 설정이 필요합니다. CONFIG 변수를 확인해주세요.', 'error');
+                return false;
+            }
+            
+            try {
+                supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+                return true;
+            } catch (error) {
+                console.error('Supabase initialization error:', error);
+                addMessage('❌ Supabase 초기화 실패', 'error');
+                return false;
+            }
+        }
+
+        async function startAutomation() {
+            addMessage('🚀 자동화 프로세스 시작', 'info');
+            
+            if (!initializeSupabase()) {
+                updateStatusIndicator('❌ 설정 오류', 'error');
+                return;
+            }
+
+            // Parse received data
+            receivedData = parseUrlParams();
+            displayReceivedData(receivedData);
+
+            currentUuid = generateUUID();
+            document.getElementById('workId').textContent = currentUuid;
+
+            addMessage(`🆔 작업 ID 생성: ${currentUuid}`, 'info');
+
+            try {
+                // Prepare webhook payload
+                const webhookPayload = {
+                    uid: currentUuid,
+                    timestamp: new Date().toISOString(),
+                    ...receivedData
+                };
+
+                addMessage('📡 웹훅 호출 시작...', 'info');
+
+                // Call n8n webhook
+                const response = await fetch(CONFIG.WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(webhookPayload)
+                });
+
+                if (response.ok) {
+                    addMessage('✅ 웹훅 호출 성공', 'success');
+                    updateStatusIndicator('✅ 프로세스 시작됨', 'success');
+                    setupRealtimeMonitoring();
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                console.error('Webhook call error:', error);
+                addMessage(`❌ 웹훅 호출 실패: ${error.message}`, 'error');
+                updateStatusIndicator('❌ 시작 실패', 'error');
+            }
+        }
+
+        function updateStatusIndicator(message, type) {
+            const indicator = document.getElementById('statusIndicator');
+            let bgClass, iconClass;
+            
+            switch(type) {
+                case 'success':
+                    bgClass = 'bg-green-500';
+                    iconClass = 'fas fa-check';
+                    break;
+                case 'error':
+                    bgClass = 'bg-red-500';
+                    iconClass = 'fas fa-exclamation-triangle';
+                    break;
+                case 'processing':
+                    bgClass = 'bg-yellow-500';
+                    iconClass = 'fas fa-spinner spin';
+                    break;
+                default:
+                    bgClass = 'bg-blue-500';
+                    iconClass = 'fas fa-info-circle';
+            }
+            
+            indicator.innerHTML = `
+                <span class="${bgClass} text-white px-4 py-2 rounded-full font-semibold">
+                    <i class="${iconClass} mr-2"></i>${message}
+                </span>
+            `;
+        }
+
+        function setupRealtimeMonitoring() {
+            addMessage('🔄 실시간 모니터링 시작', 'info');
+            
+            // Try realtime subscription first
+            if (supabase) {
+                try {
+                    subscription = supabase
+                        .channel('working_updates')
+                        .on('postgres_changes', 
+                            { 
+                                event: '*', 
+                                schema: 'public', 
+                                table: CONFIG.TABLE_NAME,
+                                filter: `uid=eq.${currentUuid}`
+                            }, 
+                            handleRealtimeUpdate
+                        )
+                        .subscribe();
+                } catch (error) {
+                    console.error('Realtime subscription error:', error);
+                    addMessage('⚠️ 실시간 구독 실패, 폴링 모드로 전환', 'warning');
+                }
+            }
+            
+            // Always setup polling as backup
+            startPolling();
+        }
+
+        function startPolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+            }
+            
+            pollingInterval = setInterval(async () => {
+                try {
+                    const { data, error } = await supabase
+                        .from(CONFIG.TABLE_NAME)
+                        .select('*')
+                        .eq('uid', currentUuid)
+                        .order('created_at', { ascending: false })
+                        .limit(1);
+                    
+                    if (error) {
+                        console.error('Polling error:', error);
+                        return;
+                    }
+                    
+                    if (data && data.length > 0) {
+                        const record = data[0];
+                        if (record.phase && record.status) {
+                            handleRealtimeUpdate({ new: record });
+                        }
+                    }
+                } catch (error) {
+                    console.error('Polling error:', error);
+                }
+            }, CONFIG.POLLING_INTERVAL);
+        }
+
+        function handleRealtimeUpdate(payload) {
+            console.log('Update received:', payload);
+            const { phase, status } = payload.new || {};
+            
+            if (phase && status) {
+                updateProcessStep(phase, status);
+                addMessage(`📊 ${phase}: ${getStatusText(status)}`, 'info');
+            }
+        }
+
+        function updateProcessStep(phase, status) {
+            const stepElement = document.querySelector(`[data-phase="${phase}"]`);
+            if (!stepElement) return;
+
+            // Show step if not visible
+            if (!stepElement.classList.contains('visible')) {
+                showNextStep(phase);
+            }
+
+            const statusIcon = stepElement.querySelector('.status-icon');
+            const statusText = stepElement.querySelector('.status-text');
+            const statusIndicator = stepElement.querySelector('.status-indicator');
+
+            // Update icon and status based on status
+            switch (status) {
+                case 'waiting':
+                case 'pending':
+                    statusIcon.className = 'fas fa-clock text-2xl text-gray-500 status-icon pulse';
+                    statusText.textContent = '대기 중...';
+                    statusIndicator.innerHTML = '<i class="fas fa-clock text-gray-400 text-xl pulse"></i>';
+                    break;
+                
+                case 'working':
+                case 'processing':
+                case 'in_progress':
+                    statusIcon.className = 'fas fa-hourglass-half text-2xl text-yellow-500 status-icon spin';
+                    statusText.textContent = '진행 중...';
+                    statusIndicator.innerHTML = '<i class="fas fa-spinner text-yellow-500 text-xl spin"></i>';
+                    updateStatusIndicator(`🔄 ${phase} 진행 중...`, 'processing');
+                    break;
+                
+                case 'completed':
+                case 'done':
+                case 'finished':
+                    statusIcon.className = 'fas fa-check-circle text-2xl text-green-500 status-icon bounce-in';
+                    statusText.textContent = '완료';
+                    statusIndicator.innerHTML = '<i class="fas fa-check text-green-500 text-xl bounce-in"></i>';
+                    
+                    if (!completedPhases.includes(phase)) {
+                        completedPhases.push(phase);
+                        updateOverallProgress();
+                        showNextStep();
+                    }
+                    break;
+            }
+        }
+
+        function showNextStep(currentPhase = null) {
+            const steps = document.querySelectorAll('.process-step');
+            let nextStepIndex = currentPhase ? 
+                phases.indexOf(currentPhase) + 1 : 
+                document.querySelectorAll('.process-step.visible').length;
+
+            if (nextStepIndex < steps.length) {
+                setTimeout(() => {
+                    steps[nextStepIndex].classList.add('visible', 'fade-in-up');
+                }, 500);
+            }
+        }
+
+        function updateOverallProgress() {
+            const progress = (completedPhases.length / phases.length) * 100;
+            document.getElementById('overallProgress').textContent = `${Math.round(progress)}%`;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+
+            if (progress === 100) {
+                addMessage('🎉 모든 작업이 완료되었습니다!', 'success');
+                updateStatusIndicator('🎉 모든 작업 완료', 'success');
+                
+                // Stop polling
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                }
+            }
+        }
+
+        function getStatusText(status) {
+            switch (status) {
+                case 'waiting':
+                case 'pending':
+                    return '대기 중';
+                case 'working':
+                case 'processing':
+                case 'in_progress':
+                    return '진행 중';
+                case 'completed':
+                case 'done':
+                case 'finished':
+                    return '완료';
+                default:
+                    return status;
+            }
+        }
+
+        function addMessage(message, type = 'info') {
+            const container = document.getElementById('messagesContainer');
+            const messageElement = document.createElement('div');
+            
+            let bgColor, textColor;
+            switch(type) {
+                case 'success':
+                    bgColor = 'bg-green-50';
+                    textColor = 'text-green-800';
+                    break;
+                case 'error':
+                    bgColor = 'bg-red-50';
+                    textColor = 'text-red-800';
+                    break;
+                case 'warning':
+                    bgColor = 'bg-yellow-50';
+                    textColor = 'text-yellow-800';
+                    break;
+                default:
+                    bgColor = 'bg-blue-50';
+                    textColor = 'text-blue-800';
+            }
+            
+            messageElement.className = `${bgColor} border-l-4 border-${type === 'success' ? 'green' : type === 'error' ? 'red' : type === 'warning' ? 'yellow' : 'blue'}-400 p-4 rounded-r-lg fade-in-up`;
+            messageElement.innerHTML = `
+                <div class="flex items-center">
+                    <span class="${textColor} font-medium text-sm">${new Date().toLocaleTimeString()}</span>
+                    <span class="${textColor} ml-4">${message}</span>
+                </div>
+            `;
+            
+            container.appendChild(messageElement);
+            container.scrollTop = container.scrollHeight;
+
+            // Remove old messages if too many
+            if (container.children.length > 10) {
+                container.removeChild(container.firstChild);
+            }
+        }
+
+        // Initialize on page load - AUTO START
+        window.addEventListener('load', () => {
+            // Show only first step initially
+            const steps = document.querySelectorAll('.process-step');
+            steps.forEach((step, index) => {
+                if (index > 0) {
+                    step.classList.remove('visible');
+                }
+            });
+            
+            // Auto start the process
+            setTimeout(() => {
+                startAutomation();
+            }, 1000); // Small delay for visual effect
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (subscription) {
+                subscription.unsubscribe();
+            }
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+            }
+        });
+    </script>
+</body>
+</html>
