@@ -1,7 +1,7 @@
 # metabase_screenshot_service.py
 from flask import Flask, request, jsonify, send_file
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -11,33 +11,39 @@ import time
 import io
 from datetime import datetime
 
+# Configuration
+METABASE_BASE_URL = "http://your-metabase.com"
+DEFAULT_QUESTION_ID = "123"
+DEFAULT_USERNAME = "your-username"
+DEFAULT_PASSWORD = "your-password"
+
 app = Flask(__name__)
 
 class MetabaseScreenshotService:
     def __init__(self):
-        self.chrome_options = Options()
-        self.chrome_options.add_argument("--headless")
-        self.chrome_options.add_argument("--no-sandbox")
-        self.chrome_options.add_argument("--disable-dev-shm-usage")
-        self.chrome_options.add_argument("--disable-gpu")
-        self.chrome_options.add_argument("--window-size=1400,1000")
-        self.chrome_options.add_argument("--disable-extensions")
-        # 실제 브라우저처럼 User-Agent 설정
-        self.chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+        self.firefox_options = Options()
+        self.firefox_options.add_argument("--headless")
+        self.firefox_options.add_argument("--no-sandbox")
+        self.firefox_options.add_argument("--disable-dev-shm-usage")
+        self.firefox_options.add_argument("--width=1400")
+        self.firefox_options.add_argument("--height=1000")
+        # Set real browser User-Agent
+        self.firefox_options.set_preference("general.useragent.override", 
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0")
         
     def wait_for_dynamic_elements(self, driver, max_wait=30):
-        """JavaScript 동적 렌더링 완료까지 대기"""
-        print("⏳ 동적 컨텐츠 로딩 대기 중...")
+        """Wait for JavaScript dynamic rendering completion"""
+        print("Waiting for dynamic content loading...")
         
-        # 1. 페이지 로드 완료 대기
+        # 1. Wait for page load completion
         WebDriverWait(driver, 10).until(
             lambda d: d.execute_script("return document.readyState") == "complete"
         )
         
-        # 2. JavaScript 실행 추가 대기
+        # 2. Additional wait for JavaScript execution
         time.sleep(5)
         
-        # 3. JavaScript로 로그인 폼 존재 확인
+        # 3. Check login form existence with JavaScript
         wait_script = """
         return new Promise((resolve) => {
             let attempts = 0;
@@ -81,28 +87,28 @@ class MetabaseScreenshotService:
             result = driver.execute_async_script(wait_script)
             return result
         except Exception as e:
-            print(f"JavaScript 대기 오류: {e}")
+            print(f"JavaScript wait error: {e}")
             return {"found": False, "error": str(e)}
     
-    def login_to_metabase(self, driver, base_url, username, password):
-        """동적 렌더링을 고려한 Metabase 로그인"""
-        login_url = f"{base_url}/auth/login"
-        print(f"🔗 로그인 페이지 접속: {login_url}")
+    def login_to_metabase(self, driver, username, password):
+        """Login to Metabase with dynamic rendering consideration"""
+        login_url = f"{METABASE_BASE_URL}/auth/login"
+        print(f"Accessing login page: {login_url}")
         
         driver.get(login_url)
-        print(f"📍 현재 URL: {driver.current_url}")
+        print(f"Current URL: {driver.current_url}")
         
-        # 동적 요소 로딩 대기
+        # Wait for dynamic elements loading
         form_result = self.wait_for_dynamic_elements(driver)
         
         if not form_result.get("found"):
-            print("❌ 로그인 폼을 찾을 수 없음")
+            print("Login form not found")
             driver.save_screenshot("login_form_not_found.png")
             return False
         
-        print(f"✅ 로그인 폼 발견: {form_result.get('selector')}")
+        print(f"Login form found: {form_result.get('selector')}")
         
-        # Username 필드 찾기 및 입력
+        # Find and input username field
         username_selectors = [
             (By.NAME, "username"),
             (By.NAME, "email"),
@@ -118,69 +124,69 @@ class MetabaseScreenshotService:
                 username_element = WebDriverWait(driver, 5).until(
                     EC.element_to_be_clickable((selector_type, selector_value))
                 )
-                print(f"✅ Username 필드 발견: {selector_type.name}='{selector_value}'")
+                print(f"Username field found: {selector_type.name}='{selector_value}'")
                 break
             except TimeoutException:
                 continue
         
         if not username_element:
-            print("❌ Username 필드를 찾을 수 없음")
+            print("Username field not found")
             return False
         
-        # Password 필드 찾기
+        # Find password field
         try:
             password_element = WebDriverWait(driver, 10).until(
                 EC.element_to_be_clickable((By.CSS_SELECTOR, "input[type='password']"))
             )
-            print("✅ Password 필드 발견")
+            print("Password field found")
         except TimeoutException:
-            print("❌ Password 필드를 찾을 수 없음")
+            print("Password field not found")
             return False
         
-        # 로그인 정보 입력
-        print("🔑 로그인 정보 입력 중...")
+        # Input login credentials
+        print("Entering login credentials...")
         username_element.clear()
         username_element.send_keys(username)
         
         password_element.clear()
         password_element.send_keys(password)
         
-        # 로그인 시도
+        # Attempt login
         try:
             submit_button = WebDriverWait(driver, 10).until(
                 EC.element_to_be_clickable((By.CSS_SELECTOR, "button[type='submit']"))
             )
             submit_button.click()
-            print("✅ 로그인 버튼 클릭")
+            print("Login button clicked")
         except TimeoutException:
-            # Enter 키로 대체 시도
+            # Try Enter key as alternative
             password_element.send_keys("\n")
-            print("✅ Enter 키로 로그인 시도")
+            print("Login attempted with Enter key")
         
-        # 로그인 완료 대기
+        # Wait for login completion
         time.sleep(5)
         
-        # 로그인 성공 확인
+        # Verify login success
         if "/auth/login" not in driver.current_url:
-            print(f"✅ 로그인 성공 - 현재 URL: {driver.current_url}")
+            print(f"Login successful - Current URL: {driver.current_url}")
             return True
         else:
-            print("❌ 로그인 실패 - 여전히 로그인 페이지에 있음")
+            print("Login failed - Still on login page")
             driver.save_screenshot("login_failed.png")
             return False
     
     def wait_for_question_load(self, driver, wait_seconds=10):
-        """Question 페이지의 차트 로딩 완료 대기"""
-        print("⏳ Question 차트 로딩 대기 중...")
+        """Wait for Question page chart loading completion"""
+        print("Waiting for question chart loading...")
         
-        # 차트 관련 요소들이 나타날 때까지 대기
+        # Wait for chart related elements to appear
         chart_selectors = [
             ".Visualization",
             "[data-testid='query-visualization-root']", 
             ".QueryBuilder-section",
             ".Card .Card-content",
-            "svg", # 많은 차트가 SVG로 렌더링됨
-            "canvas" # 일부 차트는 Canvas 사용
+            "svg", # Many charts are rendered as SVG
+            "canvas" # Some charts use Canvas
         ]
         
         chart_found = False
@@ -189,46 +195,46 @@ class MetabaseScreenshotService:
                 WebDriverWait(driver, 15).until(
                     EC.presence_of_element_located((By.CSS_SELECTOR, selector))
                 )
-                print(f"✅ 차트 요소 발견: {selector}")
+                print(f"Chart element found: {selector}")
                 chart_found = True
                 break
             except TimeoutException:
                 continue
         
         if not chart_found:
-            print("⚠️ 차트 요소를 찾지 못했지만 계속 진행")
+            print("Chart element not found but continuing")
         
-        # 로딩 스피너가 사라질 때까지 대기
+        # Wait for loading spinners to disappear
         try:
             WebDriverWait(driver, 10).until_not(
                 EC.presence_of_element_located((By.CSS_SELECTOR, ".Loading, .LoadingSpinner, [data-testid='loading-spinner']"))
             )
-            print("✅ 로딩 완료")
+            print("Loading completed")
         except TimeoutException:
-            print("⚠️ 로딩 스피너 확인 실패, 추가 대기")
+            print("Loading spinner check failed, additional wait")
         
-        # 추가 안전 대기
+        # Additional safety wait
         time.sleep(wait_seconds)
         
-        # JavaScript 실행으로 렌더링 완료 확인
+        # Verify rendering completion with JavaScript
         try:
             is_ready = driver.execute_script("""
-                // 차트가 실제로 렌더링되었는지 확인
+                // Check if chart is actually rendered
                 const charts = document.querySelectorAll('svg, canvas, .Visualization');
                 return charts.length > 0;
             """)
             
             if is_ready:
-                print("✅ 차트 렌더링 확인 완료")
+                print("Chart rendering verification completed")
             else:
-                print("⚠️ 차트 렌더링 확인 실패")
+                print("Chart rendering verification failed")
         except Exception as e:
-            print(f"⚠️ JavaScript 렌더링 확인 오류: {e}")
+            print(f"JavaScript rendering check error: {e}")
     
     def capture_question_chart(self, driver):
-        """Question 페이지에서 차트 영역만 캡처"""
+        """Capture only chart area from Question page"""
         try:
-            # 다양한 차트 선택자 시도
+            # Try various chart selectors
             chart_selectors = [
                 ".Visualization",
                 "[data-testid='query-visualization-root']",
@@ -244,7 +250,7 @@ class MetabaseScreenshotService:
                     for element in elements:
                         if element.is_displayed() and element.size['width'] > 100 and element.size['height'] > 100:
                             chart_element = element
-                            print(f"✅ 차트 요소 선택: {selector}")
+                            print(f"Chart element selected: {selector}")
                             break
                     if chart_element:
                         break
@@ -254,79 +260,78 @@ class MetabaseScreenshotService:
             if chart_element:
                 return chart_element.screenshot_as_png
             else:
-                print("⚠️ 차트 요소를 찾지 못해 전체 페이지 캡처")
+                print("Chart element not found, capturing full page")
                 return driver.get_screenshot_as_png()
                 
         except Exception as e:
-            print(f"⚠️ 차트 캡처 실패, 전체 페이지 캡처: {e}")
+            print(f"Chart capture failed, capturing full page: {e}")
             return driver.get_screenshot_as_png()
     
-    def capture_question(self, question_url, username, password, wait_seconds=10, crop_to_chart=True):
-        """Question URL을 PNG로 캡처"""
-        driver = webdriver.Chrome(options=self.chrome_options)
+    def capture_question(self, question_id=None, username=None, password=None, wait_seconds=10, crop_to_chart=True):
+        """Capture Question URL as PNG"""
+        driver = webdriver.Firefox(options=self.firefox_options)
         
         try:
-            # Metabase 기본 URL 추출
-            base_url = question_url.split('/question')[0]
-            print(f"🏠 Metabase 기본 URL: {base_url}")
+            # Use default values if not provided
+            question_id = question_id or DEFAULT_QUESTION_ID
+            username = username or DEFAULT_USERNAME
+            password = password or DEFAULT_PASSWORD
             
-            # 로그인
-            if not self.login_to_metabase(driver, base_url, username, password):
-                raise Exception("로그인 실패")
+            print(f"Metabase base URL: {METABASE_BASE_URL}")
+            print(f"Question ID: {question_id}")
             
-            # Question 페이지로 이동
-            print(f"📊 Question 페이지 이동: {question_url}")
+            # Login
+            if not self.login_to_metabase(driver, username, password):
+                raise Exception("Login failed")
+            
+            # Navigate to Question page
+            question_url = f"{METABASE_BASE_URL}/question/{question_id}"
+            print(f"Navigating to Question page: {question_url}")
             driver.get(question_url)
             
-            # 차트 로딩 완료 대기
+            # Wait for chart loading completion
             self.wait_for_question_load(driver, wait_seconds)
             
-            # 스크린샷 캡처
+            # Capture screenshot
             if crop_to_chart:
                 screenshot_png = self.capture_question_chart(driver)
             else:
                 screenshot_png = driver.get_screenshot_as_png()
             
-            print("✅ 스크린샷 캡처 완료")
+            print("Screenshot capture completed")
             return screenshot_png
                 
         except Exception as e:
-            print(f"❌ 캡처 실패: {e}")
+            print(f"Capture failed: {e}")
             driver.save_screenshot("capture_error.png")
             raise
         finally:
             driver.quit()
 
-# 서비스 인스턴스 생성
+# Service instance
 screenshot_service = MetabaseScreenshotService()
 
 @app.route('/screenshot', methods=['POST'])
 def take_screenshot():
-    """Question URL을 PNG로 변환하는 API"""
+    """API to convert Question to PNG"""
     try:
-        data = request.json
-        question_url = data.get('question_url')
+        data = request.json or {}
+        question_id = data.get('question_id')
         username = data.get('username')
         password = data.get('password')
         wait_seconds = data.get('wait_seconds', 10)
         crop_to_chart = data.get('crop_to_chart', True)
         return_base64 = data.get('return_base64', True)
         
-        if not all([question_url, username, password]):
-            return jsonify({
-                "success": False,
-                "error": "question_url, username, password are required"
-            }), 400
-        
-        print(f"📋 스크린샷 요청:")
-        print(f"   - URL: {question_url}")
-        print(f"   - Username: {username}")
+        print(f"Screenshot request:")
+        print(f"   - Question ID: {question_id or DEFAULT_QUESTION_ID}")
+        print(f"   - Username: {username or DEFAULT_USERNAME}")
         print(f"   - Wait: {wait_seconds}s")
         print(f"   - Crop: {crop_to_chart}")
         
-        # 스크린샷 캡처
+        # Capture screenshot
         screenshot_png = screenshot_service.capture_question(
-            question_url=question_url,
+            question_id=question_id,
             username=username,
             password=password,
             wait_seconds=wait_seconds,
@@ -334,25 +339,26 @@ def take_screenshot():
         )
         
         if return_base64:
-            # Base64로 반환
+            # Return as Base64
             image_base64 = base64.b64encode(screenshot_png).decode()
             return jsonify({
                 "success": True,
                 "image_base64": image_base64,
                 "timestamp": datetime.now().isoformat(),
-                "question_url": question_url
+                "question_id": question_id or DEFAULT_QUESTION_ID,
+                "base_url": METABASE_BASE_URL
             })
         else:
-            # 바이너리 파일로 반환
+            # Return as binary file
             return send_file(
                 io.BytesIO(screenshot_png),
                 mimetype='image/png',
                 as_attachment=True,
-                download_name=f'metabase_question_{int(time.time())}.png'
+                download_name=f'metabase_question_{question_id or DEFAULT_QUESTION_ID}_{int(time.time())}.png'
             )
             
     except Exception as e:
-        print(f"❌ API 오류: {e}")
+        print(f"API error: {e}")
         return jsonify({
             "success": False,
             "error": str(e)
@@ -360,31 +366,33 @@ def take_screenshot():
 
 @app.route('/health', methods=['GET'])
 def health_check():
-    """서비스 상태 확인"""
+    """Service health check"""
     return jsonify({
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
-        "service": "Metabase Screenshot Service"
+        "service": "Metabase Screenshot Service",
+        "base_url": METABASE_BASE_URL,
+        "default_question_id": DEFAULT_QUESTION_ID
     })
 
 @app.route('/test', methods=['POST'])
 def test_login():
-    """로그인 테스트용 엔드포인트"""
+    """Login test endpoint"""
     try:
-        data = request.json
-        base_url = data.get('base_url')
-        username = data.get('username')
-        password = data.get('password')
+        data = request.json or {}
+        username = data.get('username') or DEFAULT_USERNAME
+        password = data.get('password') or DEFAULT_PASSWORD
         
-        driver = webdriver.Chrome(options=screenshot_service.chrome_options)
+        driver = webdriver.Firefox(options=screenshot_service.firefox_options)
         
         try:
-            result = screenshot_service.login_to_metabase(driver, base_url, username, password)
+            result = screenshot_service.login_to_metabase(driver, username, password)
             
             return jsonify({
                 "success": result,
-                "message": "로그인 성공" if result else "로그인 실패",
-                "current_url": driver.current_url
+                "message": "Login successful" if result else "Login failed",
+                "current_url": driver.current_url,
+                "base_url": METABASE_BASE_URL
             })
             
         finally:
@@ -396,12 +404,26 @@ def test_login():
             "error": str(e)
         }), 500
 
+@app.route('/config', methods=['GET'])
+def get_config():
+    """Get current configuration"""
+    return jsonify({
+        "base_url": METABASE_BASE_URL,
+        "default_question_id": DEFAULT_QUESTION_ID,
+        "default_username": DEFAULT_USERNAME
+    })
+
 if __name__ == '__main__':
-    print("🚀 Metabase Screenshot Service 시작")
-    print("📋 사용 가능한 엔드포인트:")
-    print("   POST /screenshot - Question URL을 PNG로 변환")
-    print("   POST /test - 로그인 테스트")
-    print("   GET /health - 서비스 상태 확인")
-    print("🌐 서버 시작: http://0.0.0.0:5000")
+    print("Metabase Screenshot Service Starting")
+    print("Available endpoints:")
+    print("   POST /screenshot - Convert Question to PNG")
+    print("   POST /test - Login test")
+    print("   GET /health - Service health check")
+    print("   GET /config - View current configuration")
+    print(f"Configuration:")
+    print(f"   Base URL: {METABASE_BASE_URL}")
+    print(f"   Default Question ID: {DEFAULT_QUESTION_ID}")
+    print(f"   Default Username: {DEFAULT_USERNAME}")
+    print("Server starting: http://0.0.0.0:5000")
     
     app.run(host='0.0.0.0', port=5000, debug=False)
