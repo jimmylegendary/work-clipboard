@@ -163,7 +163,7 @@
             </div>
             <div class="mt-4" id="statusIndicator">
                 <span class="status-starting px-4 py-2 rounded-full font-semibold">
-                    <i class="fas fa-spinner spin mr-2"></i>자동화 시작 중...
+                    <i class="fas fa-spinner spin mr-2"></i>모니터링 시작 중...
                 </span>
             </div>
         </div>
@@ -286,7 +286,6 @@
         const CONFIG = {
             SUPABASE_URL: 'https://your-project.supabase.co',
             SUPABASE_ANON_KEY: 'your-supabase-anon-key',
-            WEBHOOK_URL: 'https://your-n8n-webhook-url',
             TABLE_NAME: 'working',
             POLLING_INTERVAL: 3000
         };
@@ -300,24 +299,19 @@
         let completedPhases = [];
         let receivedData = {};
 
-        function generateUUID() {
-            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-                return v.toString(16);
-            });
-        }
-
         function parseUrlParams() {
             const urlParams = new URLSearchParams(window.location.search);
             const data = {};
             
             // Parse URL parameters
+            data.uid = urlParams.get('uid') || urlParams.get('id');
             data.userId = urlParams.get('userId') || urlParams.get('user_id');
             data.dbQuery = urlParams.get('dbQuery') || urlParams.get('db_query') || urlParams.get('query');
             data.workflowId = urlParams.get('workflowId') || urlParams.get('workflow_id');
             
             // Try to get data from hash fragment as well
             const hashParams = new URLSearchParams(window.location.hash.substring(1));
+            if (!data.uid) data.uid = hashParams.get('uid') || hashParams.get('id');
             if (!data.userId) data.userId = hashParams.get('userId') || hashParams.get('user_id');
             if (!data.dbQuery) data.dbQuery = hashParams.get('dbQuery') || hashParams.get('db_query') || hashParams.get('query');
             if (!data.workflowId) data.workflowId = hashParams.get('workflowId') || hashParams.get('workflow_id');
@@ -349,8 +343,8 @@
             }
         }
 
-        async function startAutomation() {
-            addMessage('🚀 자동화 프로세스 시작', 'info');
+        async function startMonitoring() {
+            addMessage('🔍 모니터링 시작', 'info');
             
             if (!initializeSupabase()) {
                 updateStatusIndicator('❌ 설정 오류', 'error');
@@ -361,42 +355,20 @@
             receivedData = parseUrlParams();
             displayReceivedData(receivedData);
 
-            currentUuid = generateUUID();
-            document.getElementById('workId').textContent = currentUuid;
-
-            addMessage(`🆔 작업 ID 생성: ${currentUuid}`, 'info');
-
-            try {
-                // Prepare webhook payload
-                const webhookPayload = {
-                    uid: currentUuid,
-                    timestamp: new Date().toISOString(),
-                    ...receivedData
-                };
-
-                addMessage('📡 웹훅 호출 시작...', 'info');
-
-                // Call n8n webhook
-                const response = await fetch(CONFIG.WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(webhookPayload)
-                });
-
-                if (response.ok) {
-                    addMessage('✅ 웹훅 호출 성공', 'success');
-                    updateStatusIndicator('✅ 프로세스 시작됨', 'success');
-                    setupRealtimeMonitoring();
-                } else {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-            } catch (error) {
-                console.error('Webhook call error:', error);
-                addMessage(`❌ 웹훅 호출 실패: ${error.message}`, 'error');
-                updateStatusIndicator('❌ 시작 실패', 'error');
+            // Get UUID from URL parameters (provided by n8n)
+            currentUuid = receivedData.uid;
+            
+            if (!currentUuid) {
+                addMessage('❌ 작업 ID가 제공되지 않았습니다. URL 파라미터를 확인해주세요.', 'error');
+                updateStatusIndicator('❌ 작업 ID 누락', 'error');
+                return;
             }
+
+            document.getElementById('workId').textContent = currentUuid;
+            addMessage(`🆔 작업 ID: ${currentUuid}`, 'info');
+
+            updateStatusIndicator('✅ 모니터링 시작됨', 'success');
+            setupRealtimeMonitoring();
         }
 
         function updateStatusIndicator(message, type) {
@@ -429,7 +401,7 @@
         }
 
         function setupRealtimeMonitoring() {
-            addMessage('🔄 실시간 모니터링 시작', 'info');
+            addMessage('🔄 실시간 모니터링 설정', 'info');
             
             // Try realtime subscription first
             if (supabase) {
@@ -446,6 +418,8 @@
                             handleRealtimeUpdate
                         )
                         .subscribe();
+                        
+                    addMessage('✅ 실시간 구독 설정 완료', 'success');
                 } catch (error) {
                     console.error('Realtime subscription error:', error);
                     addMessage('⚠️ 실시간 구독 실패, 폴링 모드로 전환', 'warning');
@@ -485,6 +459,8 @@
                     console.error('Polling error:', error);
                 }
             }, CONFIG.POLLING_INTERVAL);
+            
+            addMessage('🔄 폴링 모니터링 시작', 'info');
         }
 
         function handleRealtimeUpdate(payload) {
@@ -637,11 +613,11 @@
             }
         }
 
-        // Initialize on page load - AUTO START
+        // Initialize on page load - AUTO START MONITORING
         window.addEventListener('load', () => {
-            // Auto start the process
+            // Auto start monitoring
             setTimeout(() => {
-                startAutomation();
+                startMonitoring();
             }, 1000); // Small delay for visual effect
         });
 
