@@ -5,6 +5,8 @@ services:
     image: postgres:15
     container_name: metabase-postgres
     restart: unless-stopped
+    ports:
+      - "5433:5432"
     environment:
       POSTGRES_DB: metabase
       POSTGRES_USER: metabase
@@ -13,6 +15,12 @@ services:
       - metabase_postgres_data:/var/lib/postgresql/data
     networks:
       - metabase-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U metabase -d metabase"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   metabase:
     image: metabase/metabase:latest
@@ -30,7 +38,8 @@ services:
     volumes:
       - metabase_data:/metabase-data
     depends_on:
-      - metabase-db
+      metabase-db:
+        condition: service_healthy
     networks:
       - metabase-network
 
