@@ -1,6 +1,3 @@
-해당 Gist를 참고해서 간단한 버전으로 만들어보겠습니다:
-
-```python
 # metabase_screenshot_service.py
 from flask import Flask, request, jsonify, send_file
 from selenium import webdriver
@@ -350,13 +347,3 @@ if __name__ == '__main__':
     logger.info("Server starting on http://0.0.0.0:5000")
     
     app.run(host='0.0.0.0', port=5000, debug=False)
-```
-
-이제 Gist의 접근 방식을 따라 훨씬 간단하게 만들었습니다:
-
-- 복잡한 JavaScript 대기 로직 제거
-- 간단한 CSS 선택자 사용
-- 명확한 단계별 로그
-- 에러 처리 간소화
-
-먼저 `/test` 엔드포인트로 로그인이 잘 되는지 확인해보세요! 🎯
