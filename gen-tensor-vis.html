@@ -17,7 +17,7 @@
         }
         
         .symbols-section {
-            grid-column: 1 / -1;
+            grid-column: 1;
             grid-row: 1;
         }
         
@@ -25,13 +25,12 @@
             grid-column: 1;
             grid-row: 2;
             overflow-y: auto;
-            max-height: calc(100vh - 200px);
         }
         
         .visualization-section {
             grid-column: 2;
-            grid-row: 2;
-            overflow-y: visible;
+            grid-row: 1 / -1;
+            overflow: visible;
             min-height: fit-content;
         }
         
@@ -49,7 +48,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 8px;
+            font-size: 9px;
             font-weight: bold;
         }
         
@@ -67,31 +66,29 @@
             border: 1px solid #ddd;
             border-radius: 8px;
             padding: 12px;
-            margin-bottom: 20px;
+            margin: 10px 0;
             background: white;
             min-height: fit-content;
+            width: 100%;
+            box-sizing: border-box;
         }
         
         .operation-flow {
             display: grid;
-            grid-template-columns: 1fr auto 1fr auto 1fr;
-            gap: 10px;
+            grid-template-columns: auto minmax(150px, 1fr) auto minmax(150px, 1fr) auto minmax(150px, 1fr);
+            gap: 20px;
             align-items: center;
-            min-height: 100px;
+            width: 100%;
+            min-width: fit-content;
         }
-        
-        .operation-flow > *:nth-child(1) { grid-column: 1; border-right: 1px solid #ddd; padding-right: 10px; }
-        .operation-flow > *:nth-child(2) { grid-column: 2; }
-        .operation-flow > *:nth-child(3) { grid-column: 3; border-right: 1px solid #ddd; padding-right: 10px; }
-        .operation-flow > *:nth-child(4) { grid-column: 4; }
-        .operation-flow > *:nth-child(5) { grid-column: 5; }
         
         .tensor-container {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 5px;
-            justify-self: center;
+            width: 100%;
+            min-width: fit-content;
         }
         
         .tensor-label {
@@ -105,7 +102,7 @@
             padding: 5px 10px;
             border-radius: 4px;
             font-weight: bold;
-            font-size: 12px;
+            text-align: center;
         }
         
         .draggable {
@@ -150,7 +147,6 @@
             border-radius: 2px;
             padding: 2px 4px;
             width: 50px;
-            font-size: 11px;
         }
         
         .delete-btn {
@@ -173,19 +169,18 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 11px;
         }
         
         th, td {
             border: 1px solid #ddd;
             padding: 6px;
             text-align: left;
+            font-size: 11px;
         }
         
         th {
             background-color: #f2f2f2;
             font-weight: bold;
-            font-size: 11px;
         }
         
         .input-row td {
@@ -203,30 +198,19 @@
         h3 {
             font-size: 14px;
         }
-        
-        .operation-name {
-            font-weight: bold;
-            font-size: 14px;
-            writing-mode: vertical-rl;
-            text-orientation: mixed;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 80px;
-        }
     </style>
 </head>
 <body class="bg-gray-100">
     <div class="container">
         <!-- Symbols Section -->
         <div class="symbols-section">
-            <div class="bg-white rounded-lg shadow p-3">
-                <h3 class="font-bold mb-2">Symbol Values</h3>
-                <div id="symbolsList" class="mb-2"></div>
+            <div class="bg-white rounded-lg shadow p-4">
+                <h3 class="font-bold mb-3">Symbol Values</h3>
+                <div id="symbolsList" class="mb-3"></div>
                 <div class="flex gap-2">
-                    <input type="text" id="symbolKey" placeholder="Symbol" class="flex-1 px-2 py-1 border border-gray-300 rounded text-xs">
-                    <input type="text" id="symbolValue" placeholder="Value" class="flex-1 px-2 py-1 border border-gray-300 rounded text-xs">
-                    <button id="addSymbol" class="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600">
+                    <input type="text" id="symbolKey" placeholder="Symbol" class="flex-1 px-2 py-1 border border-gray-300 rounded text-sm">
+                    <input type="text" id="symbolValue" placeholder="Value" class="flex-1 px-2 py-1 border border-gray-300 rounded text-sm">
+                    <button id="addSymbol" class="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600">
                         <i class="fas fa-plus"></i>
                     </button>
                 </div>
@@ -235,11 +219,11 @@
 
         <!-- Operations Section -->
         <div class="operations-section">
-            <div class="bg-white rounded-lg shadow p-3">
-                <h3 class="font-bold mb-2">Tensor Operations</h3>
+            <div class="bg-white rounded-lg shadow p-4">
+                <h3 class="font-bold mb-3">Tensor Operations</h3>
                 
                 <!-- Operations Table -->
-                <table id="operationsTable" class="mb-3">
+                <table id="operationsTable" class="mb-4">
                     <thead>
                         <tr>
                             <th>Name</th>
@@ -260,7 +244,7 @@
                             <td><input type="text" id="newInput2" placeholder="A x (B,C)"></td>
                             <td><input type="text" id="newOutput" placeholder="A x (B,C)"></td>
                             <td>
-                                <button id="addOperation" class="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600">
+                                <button id="addOperation" class="px-2 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600">
                                     <i class="fas fa-plus"></i>
                                 </button>
                             </td>
@@ -270,10 +254,10 @@
                 
                 <!-- CSV Input -->
                 <div class="mb-3">
-                    <label for="csvInput" class="block text-xs font-medium mb-1">CSV Input (name,input1,ops,input2,output):</label>
-                    <textarea id="csvInput" rows="2" class="w-full px-2 py-1 border border-gray-300 rounded text-xs" 
+                    <label for="csvInput" class="block text-sm font-medium mb-1">CSV Input (name,input1,ops,input2,output):</label>
+                    <textarea id="csvInput" rows="3" class="w-full px-2 py-1 border border-gray-300 rounded text-sm" 
                               placeholder="q,[B,1,D],*,[H/CG x (D,HD)],[H/CG x (B,1,HD)]&#10;k,[B,1,D],*,[KVH/CG x (D,HD)],[KVH/CG x (B,1,HD)]"></textarea>
-                    <button id="parseCsv" class="mt-2 px-3 py-1 bg-purple-500 text-white rounded text-xs hover:bg-purple-600">
+                    <button id="parseCsv" class="mt-2 px-3 py-1 bg-purple-500 text-white rounded text-sm hover:bg-purple-600">
                         Parse CSV
                     </button>
                 </div>
@@ -282,8 +266,8 @@
 
         <!-- Visualization Section -->
         <div class="visualization-section">
-            <div class="bg-white rounded-lg shadow p-3">
-                <h3 class="font-bold mb-2">Tensor Visualization</h3>
+            <div class="bg-white rounded-lg shadow p-4">
+                <h3 class="font-bold mb-3">Tensor Visualization</h3>
                 <div id="visualizationArea"></div>
             </div>
         </div>
@@ -291,14 +275,14 @@
 
     <script>
         // Global variables
+        // 레이어 간 시각적 오프셋(px) — 현재 코드에서 translate(${i * 3}px)와 동일해야 함
+        const LAYER_OFFSET_PX = 3;
         let symbols = {
             'B': 2, 'H': 4, 'D': 8, 'CG': 2, 'KVH': 6, 'HD': 4, 'S': 6, 'CP': 3
         };
         let operations = [];
         let draggedElement = null;
-
-        // Store original symbol expressions
-        let symbolExpressions = {};
+        let originalSymbolValues = {}; // Store original expressions
 
         // Color schemes for different tensor types
         const colorSchemes = {
@@ -346,6 +330,7 @@
 
             // Parse CSV
             document.getElementById('parseCsv').addEventListener('click', parseCsv);
+            window.addEventListener('resize', adjustStackSizes);
         }
 
         // Add symbol
@@ -355,7 +340,7 @@
             
             if (key && value) {
                 symbols[key] = value;
-                symbolExpressions[key] = value; // Store original expression
+                originalSymbolValues[key] = value; // Store original expression
                 document.getElementById('symbolKey').value = '';
                 document.getElementById('symbolValue').value = '';
                 renderSymbols();
@@ -378,9 +363,10 @@
                 
                 const valueSpan = document.createElement('span');
                 valueSpan.className = 'symbol-value';
-                // Show evaluated value, not expression
+                
+                // Show evaluated value, not the expression
                 const evaluatedValue = evaluateSymbol(value);
-                valueSpan.textContent = evaluatedValue.toString();
+                valueSpan.textContent = typeof evaluatedValue === 'number' ? evaluatedValue.toString() : evaluatedValue;
                 valueSpan.title = 'Click to edit';
                 
                 // Click to edit functionality
@@ -394,7 +380,7 @@
                 deleteBtn.title = 'Delete symbol';
                 deleteBtn.addEventListener('click', function() {
                     delete symbols[key];
-                    delete symbolExpressions[key];
+                    delete originalSymbolValues[key];
                     renderSymbols();
                     updateVisualization();
                 });
@@ -409,11 +395,11 @@
 
         // Edit symbol value
         function editSymbolValue(key, valueSpan) {
-            const originalExpression = symbolExpressions[key] || symbols[key];
+            const originalValue = originalSymbolValues[key] || symbols[key];
             const input = document.createElement('input');
             input.type = 'text';
             input.className = 'symbol-input';
-            input.value = originalExpression.toString(); // Show original expression during editing
+            input.value = originalValue.toString(); // Show original expression during edit
             
             // Replace span with input
             valueSpan.parentNode.replaceChild(input, valueSpan);
@@ -424,7 +410,7 @@
                 const newValue = input.value.trim();
                 if (newValue) {
                     symbols[key] = newValue;
-                    symbolExpressions[key] = newValue; // Store original expression
+                    originalSymbolValues[key] = newValue; // Store original expression
                     updateVisualization();
                 }
                 renderSymbols(); // Re-render to restore normal state
@@ -439,7 +425,8 @@
             input.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     finishEdit();
-                } else if (e.key === 'Escape') {
+                }
+                if (e.key === 'Escape') {
                     cancelEdit();
                 }
             });
@@ -578,7 +565,7 @@
             updateVisualization();
         }
 
-        // Evaluate symbol expressions
+        // Evaluate symbol expressions with circular reference prevention
         function evaluateSymbol(expr, evaluating = new Set()) {
             if (typeof expr === 'number') return expr;
             if (typeof expr !== 'string') return expr;
@@ -603,8 +590,7 @@
                 Object.keys(symbols).forEach(symbol => {
                     if (!evaluating.has(symbol)) {
                         const regex = new RegExp(`\\b${symbol}\\b`, 'g');
-                        const symbolValue = evaluateSymbol(symbols[symbol], new Set([...evaluating, symbol]));
-                        evaluatedExpr = evaluatedExpr.replace(regex, symbolValue);
+                        evaluatedExpr = evaluatedExpr.replace(regex, evaluateSymbol(symbols[symbol], new Set([...evaluating, symbol])));
                     }
                 });
                 
@@ -660,6 +646,10 @@
                 // Create stacked tensors
                 const stackContainer = document.createElement('div');
                 stackContainer.className = 'tensor-stack';
+
+                // [추가] 스택 정보(레이어 수/오프셋) 저장 → 나중에 크기 산정에 사용
+                stackContainer.dataset.layersShown = Math.min(tensorSpec.multiplier, 5);
+                stackContainer.dataset.layerOffsetPx = LAYER_OFFSET_PX;
                 
                 for (let i = 0; i < Math.min(tensorSpec.multiplier, 5); i++) {
                     const layer = document.createElement('div');
@@ -797,6 +787,33 @@
             return container;
         }
 
+        // absolute 레이어(.tensor-layer)로 구성된 .tensor-stack의 width/height를
+        // 내부 실제 그리드 크기 + 시각적 오프셋만큼으로 맞춰 부모가 내용 전체를 포함하게 함
+        function adjustStackSizes() {
+            document.querySelectorAll('.tensor-stack').forEach(stack => {
+                // 샘플 그리드 (모든 레이어의 그리드 크기는 동일)
+                const sampleGrid = stack.querySelector('.tensor-layer .tensor-grid');
+                if (!sampleGrid) return;
+        
+                const cs = window.getComputedStyle(sampleGrid);
+                const baseW = sampleGrid.offsetWidth
+                            + parseFloat(cs.marginLeft) + parseFloat(cs.marginRight);
+                const baseH = sampleGrid.offsetHeight
+                            + parseFloat(cs.marginTop) + parseFloat(cs.marginBottom);
+        
+                const layers = parseInt(
+                    stack.dataset.layersShown || stack.querySelectorAll('.tensor-layer').length,
+                    10
+                );
+                const offsetPx = parseFloat(stack.dataset.layerOffsetPx || 3);
+                const extra = Math.max(0, layers - 1) * offsetPx;
+        
+                // 부모 스택 컨테이너가 내용 전체를 포함하도록 크기 고정
+                stack.style.width  = (baseW + extra) + 'px';
+                stack.style.height = (baseH + extra) + 'px';
+            });
+        }
+
         // Update visualization
         function updateVisualization() {
             const container = document.getElementById('visualizationArea');
@@ -809,23 +826,16 @@
                 const flow = document.createElement('div');
                 flow.className = 'operation-flow';
                 
-                // Operation name
+                // Operation name (first column)
                 const nameDiv = document.createElement('div');
-                nameDiv.className = 'operation-name';
+                nameDiv.className = 'tensor-label';
                 nameDiv.textContent = op.name;
+                nameDiv.style.fontWeight = 'bold';
+                nameDiv.style.fontSize = '14px';
+                nameDiv.style.textAlign = 'center';
                 flow.appendChild(nameDiv);
                 
-                // Operation symbol
-                if (op.ops && op.ops.trim()) {
-                    const opsDiv = document.createElement('div');
-                    opsDiv.className = 'operation-symbol';
-                    opsDiv.textContent = op.ops;
-                    flow.appendChild(opsDiv);
-                } else {
-                    flow.appendChild(document.createElement('div')); // Empty placeholder
-                }
-                
-                // Input1 tensor (only if not empty)
+                // Input1 tensor (second column)
                 if (op.input1 && op.input1.trim()) {
                     const input1Spec = parseTensorSpec(op.input1);
                     if (input1Spec) {
@@ -841,25 +851,23 @@
                             input1Container.appendChild(input1Viz);
                             
                             flow.appendChild(input1Container);
-                        } else {
-                            flow.appendChild(document.createElement('div')); // Empty placeholder
                         }
-                    } else {
-                        flow.appendChild(document.createElement('div')); // Empty placeholder
                     }
                 } else {
-                    flow.appendChild(document.createElement('div')); // Empty placeholder
+                    flow.appendChild(document.createElement('div'));
                 }
                 
-                // Arrow
-                const arrow = document.createElement('div');
-                arrow.innerHTML = '<i class="fas fa-arrow-right"></i>';
-                arrow.style.fontSize = '16px';
-                arrow.style.color = '#666';
-                arrow.style.textAlign = 'center';
-                flow.appendChild(arrow);
+                // Operation symbol (third column)
+                if (op.ops && op.ops.trim()) {
+                    const opsDiv = document.createElement('div');
+                    opsDiv.className = 'operation-symbol';
+                    opsDiv.textContent = op.ops;
+                    flow.appendChild(opsDiv);
+                } else {
+                    flow.appendChild(document.createElement('div'));
+                }
                 
-                // Input2 tensor (only if not empty)
+                // Input2 tensor (fourth column)
                 if (op.input2 && op.input2.trim()) {
                     const input2Spec = parseTensorSpec(op.input2);
                     if (input2Spec) {
@@ -875,17 +883,21 @@
                             input2Container.appendChild(input2Viz);
                             
                             flow.appendChild(input2Container);
-                        } else {
-                            flow.appendChild(document.createElement('div')); // Empty placeholder
                         }
-                    } else {
-                        flow.appendChild(document.createElement('div')); // Empty placeholder
                     }
                 } else {
-                    flow.appendChild(document.createElement('div')); // Empty placeholder
+                    flow.appendChild(document.createElement('div'));
                 }
                 
-                // Output tensor (only if not empty)
+                // Arrow (fifth column)
+                const arrow = document.createElement('div');
+                arrow.innerHTML = '<i class="fas fa-arrow-right"></i>';
+                arrow.style.fontSize = '18px';
+                arrow.style.color = '#666';
+                arrow.style.textAlign = 'center';
+                flow.appendChild(arrow);
+                
+                // Output tensor (sixth column)
                 if (op.output && op.output.trim()) {
                     const outputSpec = parseTensorSpec(op.output);
                     if (outputSpec) {
@@ -901,19 +913,17 @@
                             outputContainer.appendChild(outputViz);
                             
                             flow.appendChild(outputContainer);
-                        } else {
-                            flow.appendChild(document.createElement('div')); // Empty placeholder
                         }
-                    } else {
-                        flow.appendChild(document.createElement('div')); // Empty placeholder
                     }
                 } else {
-                    flow.appendChild(document.createElement('div')); // Empty placeholder
+                    flow.appendChild(document.createElement('div'));
                 }
                 
                 card.appendChild(flow);
                 container.appendChild(card);
             });
+            // [추가] 렌더 이후 스택 컨테이너의 실제 크기 보정
+            requestAnimationFrame(adjustStackSizes);
         }
 
         // Initialize the application when DOM is loaded
