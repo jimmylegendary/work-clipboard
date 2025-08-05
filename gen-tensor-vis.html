@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tensor Operation Visualizer</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <style>
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            grid-template-rows: auto 1fr;
+            gap: 15px;
+            height: 100vh;
+            padding: 15px;
+        }
+        
+        .symbols-section {
+            grid-column: 1 / -1;
+            grid-row: 1;
+        }
+        
+        .operations-section {
+            grid-column: 1;
+            grid-row: 2;
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+        }
+        
+        .visualization-section {
+            grid-column: 2;
+            grid-row: 2;
+            overflow-y: visible;
+            min-height: fit-content;
+        }
+        
+        .tensor-grid {
+            display: inline-grid;
+            gap: 1px;
+            border: 2px solid #333;
+            margin: 5px;
+        }
+        
+        .tensor-cell {
+            width: 25px;
+            height: 25px;
+            border: 1px solid #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            font-weight: bold;
+        }
+        
+        .tensor-stack {
+            position: relative;
+            display: inline-block;
+            margin: 10px;
+        }
+        
+        .tensor-layer {
+            position: absolute;
+        }
+        
+        .operation-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+            background: white;
+            min-height: fit-content;
+        }
+        
+        .operation-flow {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr auto 1fr;
+            gap: 10px;
+            align-items: center;
+            min-height: 100px;
+        }
+        
+        .operation-flow > *:nth-child(1) { grid-column: 1; border-right: 1px solid #ddd; padding-right: 10px; }
+        .operation-flow > *:nth-child(2) { grid-column: 2; }
+        .operation-flow > *:nth-child(3) { grid-column: 3; border-right: 1px solid #ddd; padding-right: 10px; }
+        .operation-flow > *:nth-child(4) { grid-column: 4; }
+        .operation-flow > *:nth-child(5) { grid-column: 5; }
+        
+        .tensor-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            justify-self: center;
+        }
+        
+        .tensor-label {
+            font-weight: bold;
+            font-size: 10px;
+            color: #333;
+        }
+        
+        .operation-symbol {
+            background: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        
+        .draggable {
+            cursor: move;
+        }
+        
+        .dragging {
+            opacity: 0.5;
+        }
+        
+        .symbol-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 6px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            margin: 2px;
+            font-size: 11px;
+        }
+        
+        .symbol-key {
+            font-weight: bold;
+            min-width: 30px;
+        }
+        
+        .symbol-value {
+            color: #666;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+        
+        .symbol-value:hover {
+            background: #e9ecef;
+        }
+        
+        .symbol-input {
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            padding: 2px 4px;
+            width: 50px;
+            font-size: 11px;
+        }
+        
+        .delete-btn {
+            color: #dc3545;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+        
+        .delete-btn:hover {
+            background: #f8d7da;
+        }
+        
+        #symbolsList {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            font-size: 11px;
+        }
+        
+        .input-row td {
+            padding: 3px;
+        }
+        
+        .input-row input, .input-row select {
+            width: 100%;
+            padding: 3px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            font-size: 10px;
+        }
+        
+        h3 {
+            font-size: 14px;
+        }
+        
+        .operation-name {
+            font-weight: bold;
+            font-size: 14px;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 80px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container">
+        <!-- Symbols Section -->
+        <div class="symbols-section">
+            <div class="bg-white rounded-lg shadow p-3">
+                <h3 class="font-bold mb-2">Symbol Values</h3>
+                <div id="symbolsList" class="mb-2"></div>
+                <div class="flex gap-2">
+                    <input type="text" id="symbolKey" placeholder="Symbol" class="flex-1 px-2 py-1 border border-gray-300 rounded text-xs">
+                    <input type="text" id="symbolValue" placeholder="Value" class="flex-1 px-2 py-1 border border-gray-300 rounded text-xs">
+                    <button id="addSymbol" class="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Operations Section -->
+        <div class="operations-section">
+            <div class="bg-white rounded-lg shadow p-3">
+                <h3 class="font-bold mb-2">Tensor Operations</h3>
+                
+                <!-- Operations Table -->
+                <table id="operationsTable" class="mb-3">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Input1</th>
+                            <th>Ops</th>
+                            <th>Input2</th>
+                            <th>Output</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="operationsBody">
+                    </tbody>
+                    <tbody>
+                        <tr class="input-row">
+                            <td><input type="text" id="newName" placeholder="name"></td>
+                            <td><input type="text" id="newInput1" placeholder="A x (B,C)"></td>
+                            <td><input type="text" id="newOps" placeholder="ops"></td>
+                            <td><input type="text" id="newInput2" placeholder="A x (B,C)"></td>
+                            <td><input type="text" id="newOutput" placeholder="A x (B,C)"></td>
+                            <td>
+                                <button id="addOperation" class="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <!-- CSV Input -->
+                <div class="mb-3">
+                    <label for="csvInput" class="block text-xs font-medium mb-1">CSV Input (name,input1,ops,input2,output):</label>
+                    <textarea id="csvInput" rows="2" class="w-full px-2 py-1 border border-gray-300 rounded text-xs" 
+                              placeholder="q,[B,1,D],*,[H/CG x (D,HD)],[H/CG x (B,1,HD)]&#10;k,[B,1,D],*,[KVH/CG x (D,HD)],[KVH/CG x (B,1,HD)]"></textarea>
+                    <button id="parseCsv" class="mt-2 px-3 py-1 bg-purple-500 text-white rounded text-xs hover:bg-purple-600">
+                        Parse CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visualization Section -->
+        <div class="visualization-section">
+            <div class="bg-white rounded-lg shadow p-3">
+                <h3 class="font-bold mb-2">Tensor Visualization</h3>
+                <div id="visualizationArea"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let symbols = {
+            'B': 2, 'H': 4, 'D': 8, 'CG': 2, 'KVH': 6, 'HD': 4, 'S': 6, 'CP': 3
+        };
+        let operations = [];
+        let draggedElement = null;
+
+        // Store original symbol expressions
+        let symbolExpressions = {};
+
+        // Color schemes for different tensor types
+        const colorSchemes = {
+            input1: { base: '#e3f2fd', border: '#1976d2' },
+            input2: { base: '#e8f5e8', border: '#388e3c' },
+            output: { base: '#fff3e0', border: '#f57c00' }
+        };
+
+        // Group colors for partitioned tensors
+        const groupColors = [
+            '#ffebee', '#f3e5f5', '#e8eaf6', '#e3f2fd', '#e0f2f1',
+            '#f1f8e9', '#fff8e1', '#fce4ec', '#f9fbe7', '#e1f5fe'
+        ];
+
+        // Initialize the application
+        function init() {
+            renderSymbols();
+            renderOperations();
+            updateVisualization();
+            setupEventListeners();
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Add symbol button
+            document.getElementById('addSymbol').addEventListener('click', addSymbol);
+            
+            // Enter key for symbol inputs
+            document.getElementById('symbolKey').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') addSymbol();
+            });
+            document.getElementById('symbolValue').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') addSymbol();
+            });
+
+            // Add operation
+            document.getElementById('addOperation').addEventListener('click', addOperation);
+            
+            // Enter keys for operation inputs
+            ['newName', 'newInput1', 'newOps', 'newInput2', 'newOutput'].forEach(id => {
+                document.getElementById(id).addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') addOperation();
+                });
+            });
+
+            // Parse CSV
+            document.getElementById('parseCsv').addEventListener('click', parseCsv);
+        }
+
+        // Add symbol
+        function addSymbol() {
+            const key = document.getElementById('symbolKey').value.trim();
+            const value = document.getElementById('symbolValue').value.trim();
+            
+            if (key && value) {
+                symbols[key] = value;
+                symbolExpressions[key] = value; // Store original expression
+                document.getElementById('symbolKey').value = '';
+                document.getElementById('symbolValue').value = '';
+                renderSymbols();
+                updateVisualization();
+            }
+        }
+
+        // Render symbols
+        function renderSymbols() {
+            const container = document.getElementById('symbolsList');
+            container.innerHTML = '';
+            
+            Object.entries(symbols).forEach(([key, value]) => {
+                const item = document.createElement('div');
+                item.className = 'symbol-item';
+                
+                const keySpan = document.createElement('span');
+                keySpan.className = 'symbol-key';
+                keySpan.textContent = key;
+                
+                const valueSpan = document.createElement('span');
+                valueSpan.className = 'symbol-value';
+                // Show evaluated value, not expression
+                const evaluatedValue = evaluateSymbol(value);
+                valueSpan.textContent = evaluatedValue.toString();
+                valueSpan.title = 'Click to edit';
+                
+                // Click to edit functionality
+                valueSpan.addEventListener('click', function() {
+                    editSymbolValue(key, valueSpan);
+                });
+                
+                const deleteBtn = document.createElement('span');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
+                deleteBtn.title = 'Delete symbol';
+                deleteBtn.addEventListener('click', function() {
+                    delete symbols[key];
+                    delete symbolExpressions[key];
+                    renderSymbols();
+                    updateVisualization();
+                });
+                
+                item.appendChild(keySpan);
+                item.appendChild(document.createTextNode(' = '));
+                item.appendChild(valueSpan);
+                item.appendChild(deleteBtn);
+                container.appendChild(item);
+            });
+        }
+
+        // Edit symbol value
+        function editSymbolValue(key, valueSpan) {
+            const originalExpression = symbolExpressions[key] || symbols[key];
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'symbol-input';
+            input.value = originalExpression.toString(); // Show original expression during editing
+            
+            // Replace span with input
+            valueSpan.parentNode.replaceChild(input, valueSpan);
+            input.focus();
+            input.select();
+            
+            function finishEdit() {
+                const newValue = input.value.trim();
+                if (newValue) {
+                    symbols[key] = newValue;
+                    symbolExpressions[key] = newValue; // Store original expression
+                    updateVisualization();
+                }
+                renderSymbols(); // Re-render to restore normal state
+            }
+            
+            function cancelEdit() {
+                renderSymbols(); // Re-render to restore normal state
+            }
+            
+            // Handle input events
+            input.addEventListener('blur', finishEdit);
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    finishEdit();
+                } else if (e.key === 'Escape') {
+                    cancelEdit();
+                }
+            });
+        }
+
+        // Add operation
+        function addOperation() {
+            const name = document.getElementById('newName').value.trim();
+            const input1 = document.getElementById('newInput1').value.trim();
+            const ops = document.getElementById('newOps').value.trim();
+            const input2 = document.getElementById('newInput2').value.trim();
+            const output = document.getElementById('newOutput').value.trim();
+            
+            if (name) {
+                operations.push({ name, input1, ops, input2, output });
+                
+                // Clear inputs
+                document.getElementById('newName').value = '';
+                document.getElementById('newInput1').value = '';
+                document.getElementById('newOps').value = '';
+                document.getElementById('newInput2').value = '';
+                document.getElementById('newOutput').value = '';
+                
+                renderOperations();
+                updateVisualization();
+            }
+        }
+
+        // Parse CSV
+        function parseCsv() {
+            const csvText = document.getElementById('csvInput').value.trim();
+            if (!csvText) return;
+            
+            const lines = csvText.split('\n');
+            lines.forEach(line => {
+                if (line.trim()) {
+                    const parts = line.split(',').map(p => p.trim());
+                    if (parts.length >= 5) {
+                        operations.push({
+                            name: parts[0],
+                            input1: parts[1],
+                            ops: parts[2],
+                            input2: parts[3],
+                            output: parts[4]
+                        });
+                    }
+                }
+            });
+            
+            document.getElementById('csvInput').value = '';
+            renderOperations();
+            updateVisualization();
+        }
+
+        // Render operations table
+        function renderOperations() {
+            const tbody = document.getElementById('operationsBody');
+            tbody.innerHTML = '';
+            
+            operations.forEach((op, index) => {
+                const row = document.createElement('tr');
+                row.className = 'draggable';
+                row.draggable = true;
+                
+                row.innerHTML = `
+                    <td>${op.name}</td>
+                    <td>${op.input1}</td>
+                    <td>${op.ops}</td>
+                    <td>${op.input2}</td>
+                    <td>${op.output}</td>
+                    <td>
+                        <button onclick="moveUp(${index})" class="px-1 py-1 bg-gray-400 text-white rounded text-xs hover:bg-gray-500" title="Move Up">
+                            <i class="fas fa-arrow-up"></i>
+                        </button>
+                        <button onclick="moveDown(${index})" class="px-1 py-1 bg-gray-400 text-white rounded text-xs hover:bg-gray-500" title="Move Down">
+                            <i class="fas fa-arrow-down"></i>
+                        </button>
+                        <button onclick="deleteOperation(${index})" class="px-1 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                
+                // Drag and drop events
+                row.addEventListener('dragstart', function(e) {
+                    draggedElement = index;
+                    row.classList.add('dragging');
+                });
+                
+                row.addEventListener('dragend', function(e) {
+                    row.classList.remove('dragging');
+                    draggedElement = null;
+                });
+                
+                row.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                });
+                
+                row.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    if (draggedElement !== null && draggedElement !== index) {
+                        const temp = operations[draggedElement];
+                        operations.splice(draggedElement, 1);
+                        operations.splice(index, 0, temp);
+                        renderOperations();
+                        updateVisualization();
+                    }
+                });
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        // Move operation up
+        function moveUp(index) {
+            if (index > 0) {
+                [operations[index-1], operations[index]] = [operations[index], operations[index-1]];
+                renderOperations();
+                updateVisualization();
+            }
+        }
+
+        // Move operation down
+        function moveDown(index) {
+            if (index < operations.length - 1) {
+                [operations[index], operations[index+1]] = [operations[index+1], operations[index]];
+                renderOperations();
+                updateVisualization();
+            }
+        }
+
+        // Delete operation
+        function deleteOperation(index) {
+            operations.splice(index, 1);
+            renderOperations();
+            updateVisualization();
+        }
+
+        // Evaluate symbol expressions
+        function evaluateSymbol(expr, evaluating = new Set()) {
+            if (typeof expr === 'number') return expr;
+            if (typeof expr !== 'string') return expr;
+            
+            // Prevent circular references
+            if (evaluating.has(expr)) return expr;
+            evaluating.add(expr);
+            
+            // If it's just a number
+            if (!isNaN(expr)) return parseFloat(expr);
+            
+            // If it's a simple symbol
+            if (symbols[expr] !== undefined && !evaluating.has(symbols[expr])) {
+                return evaluateSymbol(symbols[expr], evaluating);
+            }
+            
+            // If it's an expression like "D/H"
+            try {
+                let evaluatedExpr = expr;
+                
+                // Replace all symbols with their values
+                Object.keys(symbols).forEach(symbol => {
+                    if (!evaluating.has(symbol)) {
+                        const regex = new RegExp(`\\b${symbol}\\b`, 'g');
+                        const symbolValue = evaluateSymbol(symbols[symbol], new Set([...evaluating, symbol]));
+                        evaluatedExpr = evaluatedExpr.replace(regex, symbolValue);
+                    }
+                });
+                
+                // Evaluate the mathematical expression
+                return Function('"use strict"; return (' + evaluatedExpr + ')')();
+            } catch (e) {
+                return expr; // Return original if evaluation fails
+            }
+        }
+
+        // Parse tensor specification
+        function parseTensorSpec(spec) {
+            if (!spec || spec.trim() === '') return null;
+            
+            spec = spec.trim();
+            
+            // Handle format like "H x (B,H,D)" or "4 x (2,3)"
+            const multiplierMatch = spec.match(/^(.+?)\s*x\s*\((.+)\)$/);
+            if (multiplierMatch) {
+                const multiplier = evaluateSymbol(multiplierMatch[1].trim());
+                const dimsStr = multiplierMatch[2];
+                const dimensions = dimsStr.split(',').map(d => d.trim());
+                
+                return {
+                    multiplier: multiplier,
+                    dimensions: dimensions
+                };
+            }
+            
+            // Handle format like "[B,1,D]" or "(B,C)"
+            const bracketMatch = spec.match(/^[\[\(](.+)[\]\)]$/);
+            if (bracketMatch) {
+                const dimsStr = bracketMatch[1];
+                const dimensions = dimsStr.split(',').map(d => d.trim());
+                
+                return {
+                    multiplier: 1,
+                    dimensions: dimensions
+                };
+            }
+            
+            return null;
+        }
+
+        // Create tensor visualization
+        function createTensorVisualization(tensorSpec, type) {
+            if (!tensorSpec) return null;
+            
+            const container = document.createElement('div');
+            container.className = 'tensor-container';
+            
+            if (tensorSpec.multiplier > 1) {
+                // Create stacked tensors
+                const stackContainer = document.createElement('div');
+                stackContainer.className = 'tensor-stack';
+                
+                for (let i = 0; i < Math.min(tensorSpec.multiplier, 5); i++) {
+                    const layer = document.createElement('div');
+                    layer.className = 'tensor-layer';
+                    layer.style.transform = `translate(${i * 3}px, ${i * 3}px)`;
+                    layer.style.zIndex = tensorSpec.multiplier - i;
+                    
+                    const grid = createTensorGrid(tensorSpec.dimensions, type);
+                    layer.appendChild(grid);
+                    stackContainer.appendChild(layer);
+                }
+                
+                container.appendChild(stackContainer);
+                
+                if (tensorSpec.multiplier > 5) {
+                    const label = document.createElement('div');
+                    label.className = 'tensor-label';
+                    label.textContent = `... (${tensorSpec.multiplier} total)`;
+                    container.appendChild(label);
+                }
+            } else {
+                // Single tensor
+                const grid = createTensorGrid(tensorSpec.dimensions, type);
+                container.appendChild(grid);
+            }
+            
+            return container;
+        }
+
+        // Create tensor grid
+        function createTensorGrid(dimensions, type) {
+            if (dimensions.length === 2) {
+                return create2DTensorGrid(dimensions, type);
+            } else if (dimensions.length === 3) {
+                return create3DTensorGrid(dimensions, type);
+            } else {
+                // Fallback for other dimensions
+                const grid = document.createElement('div');
+                grid.textContent = `${dimensions.join('×')} Tensor`;
+                grid.style.padding = '10px';
+                grid.style.border = '1px solid #ccc';
+                grid.style.borderRadius = '4px';
+                return grid;
+            }
+        }
+
+        // Create 2D tensor grid
+        function create2DTensorGrid(dimensions, type) {
+            const [dim1, dim2] = dimensions;
+            
+            // Parse partitioning
+            const dim1Parts = dim1.split('/');
+            const dim2Parts = dim2.split('/');
+            
+            const rows = evaluateSymbol(dim1Parts[0]);
+            const cols = evaluateSymbol(dim2Parts[0]);
+            
+            const rowGroups = dim1Parts.length > 1 ? evaluateSymbol(dim1Parts[1]) : 1;
+            const colGroups = dim2Parts.length > 1 ? evaluateSymbol(dim2Parts[1]) : 1;
+            
+            const grid = document.createElement('div');
+            grid.className = 'tensor-grid';
+            grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+            grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+            
+            const baseColor = colorSchemes[type] || colorSchemes.input1;
+            
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'tensor-cell';
+                    
+                    // Determine group colors for partitioned tensors
+                    let cellColor = baseColor.base;
+                    if (rowGroups > 1 || colGroups > 1) {
+                        const rowGroup = Math.floor(i / (rows / rowGroups));
+                        const colGroup = Math.floor(j / (cols / colGroups));
+                        const groupIndex = rowGroup * colGroups + colGroup;
+                        cellColor = groupColors[groupIndex % groupColors.length];
+                    }
+                    
+                    cell.style.backgroundColor = cellColor;
+                    cell.style.borderColor = baseColor.border;
+                    grid.appendChild(cell);
+                }
+            }
+            
+            return grid;
+        }
+
+        // Create 3D tensor grid (simplified as 2D with depth indication)
+        function create3DTensorGrid(dimensions, type) {
+            const [dim1, dim2, dim3] = dimensions;
+            
+            const depth = evaluateSymbol(dim1);
+            const rows = evaluateSymbol(dim2);
+            const cols = evaluateSymbol(dim3);
+            
+            const container = document.createElement('div');
+            container.style.position = 'relative';
+            container.style.display = 'inline-block';
+            
+            // Show first few layers with offset
+            const layersToShow = Math.min(depth, 3);
+            for (let d = 0; d < layersToShow; d++) {
+                const layer = document.createElement('div');
+                layer.className = 'tensor-grid';
+                layer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+                layer.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+                layer.style.position = 'absolute';
+                layer.style.transform = `translate(${d * 2}px, ${d * 2}px)`;
+                layer.style.zIndex = layersToShow - d;
+                
+                const baseColor = colorSchemes[type] || colorSchemes.input1;
+                
+                for (let i = 0; i < rows; i++) {
+                    for (let j = 0; j < cols; j++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'tensor-cell';
+                        cell.style.backgroundColor = baseColor.base;
+                        cell.style.borderColor = baseColor.border;
+                        layer.appendChild(cell);
+                    }
+                }
+                
+                container.appendChild(layer);
+            }
+            
+            // Adjust container size
+            const totalWidth = cols * 27 + layersToShow * 2;
+            const totalHeight = rows * 27 + layersToShow * 2;
+            container.style.width = totalWidth + 'px';
+            container.style.height = totalHeight + 'px';
+            
+            return container;
+        }
+
+        // Update visualization
+        function updateVisualization() {
+            const container = document.getElementById('visualizationArea');
+            container.innerHTML = '';
+            
+            operations.forEach((op, index) => {
+                const card = document.createElement('div');
+                card.className = 'operation-card';
+                
+                const flow = document.createElement('div');
+                flow.className = 'operation-flow';
+                
+                // Operation name
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'operation-name';
+                nameDiv.textContent = op.name;
+                flow.appendChild(nameDiv);
+                
+                // Operation symbol
+                if (op.ops && op.ops.trim()) {
+                    const opsDiv = document.createElement('div');
+                    opsDiv.className = 'operation-symbol';
+                    opsDiv.textContent = op.ops;
+                    flow.appendChild(opsDiv);
+                } else {
+                    flow.appendChild(document.createElement('div')); // Empty placeholder
+                }
+                
+                // Input1 tensor (only if not empty)
+                if (op.input1 && op.input1.trim()) {
+                    const input1Spec = parseTensorSpec(op.input1);
+                    if (input1Spec) {
+                        const input1Viz = createTensorVisualization(input1Spec, 'input1');
+                        if (input1Viz) {
+                            const input1Container = document.createElement('div');
+                            input1Container.className = 'tensor-container';
+                            
+                            const label1 = document.createElement('div');
+                            label1.className = 'tensor-label';
+                            label1.textContent = 'INPUT1';
+                            input1Container.appendChild(label1);
+                            input1Container.appendChild(input1Viz);
+                            
+                            flow.appendChild(input1Container);
+                        } else {
+                            flow.appendChild(document.createElement('div')); // Empty placeholder
+                        }
+                    } else {
+                        flow.appendChild(document.createElement('div')); // Empty placeholder
+                    }
+                } else {
+                    flow.appendChild(document.createElement('div')); // Empty placeholder
+                }
+                
+                // Arrow
+                const arrow = document.createElement('div');
+                arrow.innerHTML = '<i class="fas fa-arrow-right"></i>';
+                arrow.style.fontSize = '16px';
+                arrow.style.color = '#666';
+                arrow.style.textAlign = 'center';
+                flow.appendChild(arrow);
+                
+                // Input2 tensor (only if not empty)
+                if (op.input2 && op.input2.trim()) {
+                    const input2Spec = parseTensorSpec(op.input2);
+                    if (input2Spec) {
+                        const input2Viz = createTensorVisualization(input2Spec, 'input2');
+                        if (input2Viz) {
+                            const input2Container = document.createElement('div');
+                            input2Container.className = 'tensor-container';
+                            
+                            const label2 = document.createElement('div');
+                            label2.className = 'tensor-label';
+                            label2.textContent = 'INPUT2';
+                            input2Container.appendChild(label2);
+                            input2Container.appendChild(input2Viz);
+                            
+                            flow.appendChild(input2Container);
+                        } else {
+                            flow.appendChild(document.createElement('div')); // Empty placeholder
+                        }
+                    } else {
+                        flow.appendChild(document.createElement('div')); // Empty placeholder
+                    }
+                } else {
+                    flow.appendChild(document.createElement('div')); // Empty placeholder
+                }
+                
+                // Output tensor (only if not empty)
+                if (op.output && op.output.trim()) {
+                    const outputSpec = parseTensorSpec(op.output);
+                    if (outputSpec) {
+                        const outputViz = createTensorVisualization(outputSpec, 'output');
+                        if (outputViz) {
+                            const outputContainer = document.createElement('div');
+                            outputContainer.className = 'tensor-container';
+                            
+                            const labelOut = document.createElement('div');
+                            labelOut.className = 'tensor-label';
+                            labelOut.textContent = 'OUTPUT';
+                            outputContainer.appendChild(labelOut);
+                            outputContainer.appendChild(outputViz);
+                            
+                            flow.appendChild(outputContainer);
+                        } else {
+                            flow.appendChild(document.createElement('div')); // Empty placeholder
+                        }
+                    } else {
+                        flow.appendChild(document.createElement('div')); // Empty placeholder
+                    }
+                } else {
+                    flow.appendChild(document.createElement('div')); // Empty placeholder
+                }
+                
+                card.appendChild(flow);
+                container.appendChild(card);
+            });
+        }
+
+        // Initialize the application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
