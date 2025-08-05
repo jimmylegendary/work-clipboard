@@ -457,28 +457,32 @@
 
         // Parse CSV
         function parseCsv() {
-            const csvText = document.getElementById('csvInput').value.trim();
-            if (!csvText) return;
-            
-            const lines = csvText.split('\n');
-            lines.forEach(line => {
-                if (line.trim()) {
-                    const parts = line.split(',').map(p => p.trim());
-                    if (parts.length >= 5) {
-                        operations.push({
-                            name: parts[0],
-                            input1: parts[1],
-                            ops: parts[2],
-                            input2: parts[3],
-                            output: parts[4]
-                        });
-                    }
-                }
-            });
-            
-            document.getElementById('csvInput').value = '';
-            renderOperations();
-            updateVisualization();
+          const csvText = document.getElementById('csvInput').value.trim();
+          if (!csvText) return;
+        
+          const lines = csvText.split('\n');
+          lines.forEach(rawLine => {
+            const raw = rawLine.trim();
+            if (!raw) return;
+        
+            const parts = splitTopLevelByComma(raw);
+            if (parts.length !== 5) {
+              console.warn('CSV line ignored (must have 5 fields):', raw, parts);
+              return;
+            }
+        
+            const name   = normalizeTensorSpec(parts[0]);
+            const input1 = normalizeTensorSpec(parts[1]);
+            const ops    = normalizeTensorSpec(parts[2]);
+            const input2 = normalizeTensorSpec(parts[3]);
+            const output = normalizeTensorSpec(parts[4]);
+        
+            operations.push({ name, input1, ops, input2, output });
+          });
+        
+          document.getElementById('csvInput').value = '';
+          renderOperations();
+          updateVisualization();
         }
 
         // Render operations table
@@ -603,36 +607,33 @@
 
         // Parse tensor specification
         function parseTensorSpec(spec) {
-            if (!spec || spec.trim() === '') return null;
-            
-            spec = spec.trim();
-            
-            // Handle format like "H x (B,H,D)" or "4 x (2,3)"
-            const multiplierMatch = spec.match(/^(.+?)\s*x\s*\((.+)\)$/);
-            if (multiplierMatch) {
-                const multiplier = evaluateSymbol(multiplierMatch[1].trim());
-                const dimsStr = multiplierMatch[2];
-                const dimensions = dimsStr.split(',').map(d => d.trim());
-                
-                return {
-                    multiplier: multiplier,
-                    dimensions: dimensions
-                };
-            }
-            
-            // Handle format like "[B,1,D]" or "(B,C)"
-            const bracketMatch = spec.match(/^[\[\(](.+)[\]\)]$/);
-            if (bracketMatch) {
-                const dimsStr = bracketMatch[1];
-                const dimensions = dimsStr.split(',').map(d => d.trim());
-                
-                return {
-                    multiplier: 1,
-                    dimensions: dimensions
-                };
-            }
-            
-            return null;
+          if (!spec || spec.trim() === '') return null;
+        
+          spec = normalizeTensorSpec(spec);
+        
+          // 1) "<mul> x (<dims>)" 또는 "<mul> x <dims>"
+          let m = spec.match(/^(.+?)\s*x\s*(?:\((.+)\)|(.+))$/);
+          if (m) {
+            const multiplier = evaluateSymbol(m[1].trim());
+            const dimsStr = (m[2] ?? m[3]).trim();
+            const dimensions = dimsStr.split(',').map(d => d.trim());
+            return { multiplier, dimensions };
+          }
+        
+          // 2) "(dims)" 형태
+          let p = spec.match(/^\((.+)\)$/);
+          if (p) {
+            const dimensions = p[1].split(',').map(d => d.trim());
+            return { multiplier: 1, dimensions };
+          }
+        
+          // 3) 괄호 없이 "B,S,D" 형태
+          if (spec.includes(',')) {
+            const dimensions = spec.split(',').map(d => d.trim());
+            return { multiplier: 1, dimensions };
+          }
+        
+          return null;
         }
 
         // Create tensor visualization
@@ -812,6 +813,46 @@
                 stack.style.width  = (baseW + extra) + 'px';
                 stack.style.height = (baseH + extra) + 'px';
             });
+        }
+
+        // 따옴표 내부의 콤마는 분리하지 않도록 처리
+        function splitTopLevelByComma(line) {
+          const out = [];
+          let cur = '';
+          let inQuote = null;  // '"' or "'"
+        
+          for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+        
+            if (ch === '"' || ch === "'") {
+              if (inQuote === ch) inQuote = null;
+              else if (!inQuote) inQuote = ch;
+              cur += ch;
+              continue;
+            }
+            if (!inQuote && ch === ',') {
+              out.push(cur.trim());
+              cur = '';
+              continue;
+            }
+            cur += ch;
+          }
+          if (cur.trim() !== '') out.push(cur.trim());
+          return out;
+        }
+
+        function normalizeTensorSpec(s) {
+          if (!s) return s;
+          s = s.trim();
+        
+          // 앞뒤 따옴표 제거
+          s = s.replace(/^['"]|['"]$/g, '');
+        
+          // 바깥쪽 대괄호만 한 번 벗겨줌 (과거 CSV 호환용)
+          if (s.startsWith('[') && s.endsWith(']')) {
+            s = s.slice(1, -1).trim();
+          }
+          return s;
         }
 
         // Update visualization
