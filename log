@@ -1,0 +1,345 @@
+ubuntu@swat1-05:~$ docker logs unified_qwen3_5_397b_worker.1.o2leap619x11r0yl5hej9qu3b -f
+(APIServer pid=1) INFO 02-24 05:47:25 [utils.py:293]
+(APIServer pid=1) INFO 02-24 05:47:25 [utils.py:293]        █     █     █▄   ▄█
+(APIServer pid=1) INFO 02-24 05:47:25 [utils.py:293]  ▄▄ ▄█ █     █     █ ▀▄▀ █  version 0.16.0rc2.dev376+gf4af642a6
+(APIServer pid=1) INFO 02-24 05:47:25 [utils.py:293]   █▄█▀ █     █     █     █  model   Qwen/Qwen3.5-397B-A17B
+(APIServer pid=1) INFO 02-24 05:47:25 [utils.py:293]    ▀▀  ▀▀▀▀▀ ▀▀▀▀▀ ▀     ▀
+(APIServer pid=1) INFO 02-24 05:47:25 [utils.py:293]
+(APIServer pid=1) INFO 02-24 05:47:25 [utils.py:229] non-default args: {'model_tag': 'Qwen/Qwen3.5-397B-A17B', 'host': '0.0.0.0', 'model': 'Qwen/Qwen3.5-397B-A17B', 'max_model_len': 262144, 'distributed_executor_backend': 'mp', 'pipeline_parallel_size': 2, 'master_addr': '75.12.36.64', 'master_port': 29500, 'nnodes': 2, 'node_rank': 1, 'tensor_parallel_size': 8}
+(APIServer pid=1) INFO 02-24 05:47:25 [arg_utils.py:628] HF_HUB_OFFLINE is True, replace model_id [Qwen/Qwen3.5-397B-A17B] to model_path [/root/.cache/huggingface/hub/models--Qwen--Qwen3.5-397B-A17B/snapshots/7cad2bae11cb49ca79f7d6a0954de2e2756f4e27]
+(APIServer pid=1) INFO 02-24 05:47:33 [model.py:532] Resolved architecture: Qwen3_5MoeForConditionalGeneration
+(APIServer pid=1) INFO 02-24 05:47:33 [model.py:1556] Using max model len 262144
+(APIServer pid=1) INFO 02-24 05:47:33 [arg_utils.py:1590] Inferred data_parallel_rank 0 from node_rank 1
+(APIServer pid=1) INFO 02-24 05:47:33 [scheduler.py:224] Chunked prefill is enabled with max_num_batched_tokens=2048.
+(APIServer pid=1) INFO 02-24 05:47:35 [config.py:500] Setting attention block size to 528 tokens to ensure that attention page size is >= mamba page size.
+(APIServer pid=1) INFO 02-24 05:47:35 [config.py:531] Padding mamba page size by 1.34% to ensure that mamba page size and attention page size are exactly equal.
+(APIServer pid=1) INFO 02-24 05:47:35 [vllm.py:697] Asynchronous scheduling is enabled.
+(EngineCore_DP0 pid=201) INFO 02-24 05:47:46 [core.py:98] Initializing a V1 LLM engine (v0.16.0rc2.dev376+gf4af642a6) with config: model='/root/.cache/huggingface/hub/models--Qwen--Qwen3.5-397B-A17B/snapshots/7cad2bae11cb49ca79f7d6a0954de2e2756f4e27', speculative_config=None, tokenizer='/root/.cache/huggingface/hub/models--Qwen--Qwen3.5-397B-A17B/snapshots/7cad2bae11cb49ca79f7d6a0954de2e2756f4e27', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=262144, download_dir=None, load_format=auto, tensor_parallel_size=8, pipeline_parallel_size=2, data_parallel_size=1, disable_custom_all_reduce=True, quantization=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False), seed=0, served_model_name=/root/.cache/huggingface/hub/models--Qwen--Qwen3.5-397B-A17B/snapshots/7cad2bae11cb49ca79f7d6a0954de2e2756f4e27, enable_prefix_caching=False, enable_chunked_prefill=True, pooler_config=None, compilation_config={'level': None, 'mode': <CompilationMode.VLLM_COMPILE: 3>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['none'], 'splitting_ops': ['vllm::unified_attention', 'vllm::unified_attention_with_output', 'vllm::unified_mla_attention', 'vllm::unified_mla_attention_with_output', 'vllm::mamba_mixer2', 'vllm::mamba_mixer', 'vllm::short_conv', 'vllm::linear_attention', 'vllm::plamo2_mamba_mixer', 'vllm::gdn_attention_core', 'vllm::kda_attention', 'vllm::sparse_attn_indexer', 'vllm::rocm_aiter_sparse_attn_indexer', 'vllm::unified_kv_cache_update'], 'compile_mm_encoder': False, 'compile_sizes': [], 'compile_ranges_split_points': [2048], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_AND_PIECEWISE: (2, 1)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128, 136, 144, 152, 160, 168, 176, 184, 192, 200, 208, 216, 224, 232, 240, 248, 256, 272, 288, 304, 320, 336, 352, 368, 384, 400, 416, 432, 448, 464, 480, 496, 512], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': False, 'fuse_act_quant': False, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'fuse_act_padding': False}, 'max_cudagraph_capture_size': 512, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': True, 'static_all_moe_layers': []}
+INFO 02-24 05:47:55 [parallel_state.py:1307] world_size=16 rank=11 local_rank=3 distributed_init_method=tcp://75.12.36.64:29500 backend=nccl
+[/pytorch/third_party/gloo/gloo/transport/tcp/debug_logger.cc:9] ERROR failed to connect, willRetry=1, retry=1, retryLimit=3, rank=11, size=16, local=[75.12.36.65]:35984, remote=[75.12.36.65]:37272$11, error=SO_ERROR: Connection refused, remote=[75.12.36.65]:37272$11
+[/pytorch/third_party/gloo/gloo/transport/tcp/debug_logger.cc:9] ERROR failed to connect, willRetry=1, retry=2, retryLimit=3, rank=11, size=16, local=[75.12.36.65]:37520, remote=[75.12.36.65]:37272$11, error=SO_ERROR: Connection refused, remote=[75.12.36.65]:37272$11
+[/pytorch/third_party/gloo/gloo/transport/tcp/debug_logger.cc:9] ERROR failed to connect, willRetry=1, retry=3, retryLimit=3, rank=11, size=16, local=[75.12.36.65]:40080, remote=[75.12.36.65]:37272$11, error=SO_ERROR: Connection refused, remote=[75.12.36.65]:37272$11
+[/pytorch/third_party/gloo/gloo/transport/tcp/debug_logger.cc:9] ERROR failed to connect, willRetry=0, retry=4, retryLimit=3, rank=11, size=16, local=[75.12.36.65]:41104, remote=[75.12.36.65]:37272$11, error=SO_ERROR: Connection refused, remote=[75.12.36.65]:37272$11
+[rank11]:[E224 05:47:55.598276913 ProcessGroupGloo.cpp:66] Gloo connectFullMesh failed with [/pytorch/third_party/gloo/gloo/transport/tcp/pair.cc:152] timed out connecting: SO_ERROR: Connection refused, remote=[75.12.36.65]:37272$11
+ERROR 02-24 05:47:55 [multiproc_executor.py:783] WorkerProc failed to start.
+ERROR 02-24 05:47:55 [multiproc_executor.py:783] Traceback (most recent call last):
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/executor/multiproc_executor.py", line 754, in worker_main
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     worker = WorkerProc(*args, **kwargs)
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     return func(*args, **kwargs)
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]            ^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/executor/multiproc_executor.py", line 571, in __init__
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     self.worker.init_device()
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/worker_base.py", line 322, in init_device
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     self.worker.init_device()  # type: ignore
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     ^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     return func(*args, **kwargs)
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]            ^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py", line 263, in init_device
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     init_worker_distributed_environment(
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py", line 1125, in init_worker_distributed_environment
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     init_distributed_environment(
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/distributed/parallel_state.py", line 1346, in init_distributed_environment
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     _WORLD = init_world_group(ranks, local_rank, backend)
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/distributed/parallel_state.py", line 1133, in init_world_group
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     return GroupCoordinator(
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]            ^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/distributed/parallel_state.py", line 339, in __init__
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     cpu_group = torch.distributed.new_group(ranks, backend="gloo")
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/torch/distributed/c10d_logger.py", line 97, in wrapper
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     func_return = func(*args, **kwargs)
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]                   ^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/torch/distributed/distributed_c10d.py", line 5374, in new_group
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     return _new_group_with_tag(
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]            ^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/torch/distributed/distributed_c10d.py", line 5465, in _new_group_with_tag
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     pg, pg_store = _new_process_group_helper(
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/torch/distributed/distributed_c10d.py", line 2043, in _new_process_group_helper
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     backend_class = ProcessGroupGloo(
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]                     ^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:55 [multiproc_executor.py:783] RuntimeError: Gloo connectFullMesh failed with [/pytorch/third_party/gloo/gloo/transport/tcp/pair.cc:152] timed out connecting: SO_ERROR: Connection refused, remote=[75.12.36.65]:37272$11
+INFO 02-24 05:47:55 [multiproc_executor.py:732] Parent process exited, terminating worker
+INFO 02-24 05:47:55 [multiproc_executor.py:732] Parent process exited, terminating worker
+INFO 02-24 05:47:55 [multiproc_executor.py:732] Parent process exited, terminating worker
+INFO 02-24 05:47:55 [parallel_state.py:1307] world_size=16 rank=8 local_rank=0 distributed_init_method=tcp://75.12.36.64:29500 backend=nccl
+[/pytorch/third_party/gloo/gloo/transport/tcp/debug_logger.cc:9] ERROR failed to connect, willRetry=1, retry=1, retryLimit=3, rank=8, size=16, local=[75.12.36.65]:4811, remote=[75.12.36.65]:35228$8, error=SO_ERROR: Connection refused, remote=[75.12.36.65]:35228$8
+[/pytorch/third_party/gloo/gloo/transport/tcp/debug_logger.cc:9] ERROR failed to connect, willRetry=1, retry=2, retryLimit=3, rank=8, size=16, local=[75.12.36.65]:6859, remote=[75.12.36.65]:35228$8, error=SO_ERROR: Connection refused, remote=[75.12.36.65]:35228$8
+[/pytorch/third_party/gloo/gloo/transport/tcp/debug_logger.cc:9] ERROR failed to connect, willRetry=1, retry=3, retryLimit=3, rank=8, size=16, local=[75.12.36.65]:10443, remote=[75.12.36.65]:35228$8, error=SO_ERROR: Connection refused, remote=[75.12.36.65]:35228$8
+[/pytorch/third_party/gloo/gloo/transport/tcp/debug_logger.cc:9] ERROR failed to connect, willRetry=0, retry=4, retryLimit=3, rank=8, size=16, local=[75.12.36.65]:10955, remote=[75.12.36.65]:35228$8, error=SO_ERROR: Connection refused, remote=[75.12.36.65]:35228$8
+INFO 02-24 05:47:55 [multiproc_executor.py:732] Parent process exited, terminating worker
+[rank8]:[E224 05:47:55.841612962 ProcessGroupGloo.cpp:66] Gloo connectFullMesh failed with [/pytorch/third_party/gloo/gloo/transport/tcp/pair.cc:152] timed out connecting: SO_ERROR: Connection refused, remote=[75.12.36.65]:35228$8
+INFO 02-24 05:47:55 [multiproc_executor.py:732] Parent process exited, terminating worker
+ERROR 02-24 05:47:55 [multiproc_executor.py:783] WorkerProc failed to start.
+ERROR 02-24 05:47:55 [multiproc_executor.py:783] Traceback (most recent call last):
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/executor/multiproc_executor.py", line 754, in worker_main
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     worker = WorkerProc(*args, **kwargs)
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     return func(*args, **kwargs)
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]            ^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/executor/multiproc_executor.py", line 571, in __init__
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     self.worker.init_device()
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/worker_base.py", line 322, in init_device
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     self.worker.init_device()  # type: ignore
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     ^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     return func(*args, **kwargs)
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]            ^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py", line 263, in init_device
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     init_worker_distributed_environment(
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py", line 1125, in init_worker_distributed_environment
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     init_distributed_environment(
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/distributed/parallel_state.py", line 1346, in init_distributed_environment
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     _WORLD = init_world_group(ranks, local_rank, backend)
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/distributed/parallel_state.py", line 1133, in init_world_group
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     return GroupCoordinator(
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]            ^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/distributed/parallel_state.py", line 339, in __init__
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     cpu_group = torch.distributed.new_group(ranks, backend="gloo")
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/torch/distributed/c10d_logger.py", line 97, in wrapper
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     func_return = func(*args, **kwargs)
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]                   ^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/torch/distributed/distributed_c10d.py", line 5374, in new_group
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     return _new_group_with_tag(
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]            ^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/torch/distributed/distributed_c10d.py", line 5465, in _new_group_with_tag
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     pg, pg_store = _new_process_group_helper(
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/torch/distributed/distributed_c10d.py", line 2043, in _new_process_group_helper
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]     backend_class = ProcessGroupGloo(
+ERROR 02-24 05:47:55 [multiproc_executor.py:783]                     ^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:55 [multiproc_executor.py:783] RuntimeError: Gloo connectFullMesh failed with [/pytorch/third_party/gloo/gloo/transport/tcp/pair.cc:152] timed out connecting: SO_ERROR: Connection refused, remote=[75.12.36.65]:35228$8
+INFO 02-24 05:47:55 [multiproc_executor.py:732] Parent process exited, terminating worker
+INFO 02-24 05:47:55 [multiproc_executor.py:732] Parent process exited, terminating worker
+INFO 02-24 05:47:55 [multiproc_executor.py:732] Parent process exited, terminating worker
+[rank8]:[W224 05:47:55.289866801 ProcessGroupNCCL.cpp:1553] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+INFO 02-24 05:47:56 [parallel_state.py:1307] world_size=16 rank=15 local_rank=7 distributed_init_method=tcp://75.12.36.64:29500 backend=nccl
+INFO 02-24 05:47:56 [parallel_state.py:1307] world_size=16 rank=10 local_rank=2 distributed_init_method=tcp://75.12.36.64:29500 backend=nccl
+INFO 02-24 05:47:56 [parallel_state.py:1307] world_size=16 rank=13 local_rank=5 distributed_init_method=tcp://75.12.36.64:29500 backend=nccl
+INFO 02-24 05:47:56 [parallel_state.py:1307] world_size=16 rank=9 local_rank=1 distributed_init_method=tcp://75.12.36.64:29500 backend=nccl
+INFO 02-24 05:47:56 [parallel_state.py:1307] world_size=16 rank=12 local_rank=4 distributed_init_method=tcp://75.12.36.64:29500 backend=nccl
+INFO 02-24 05:47:56 [parallel_state.py:1307] world_size=16 rank=14 local_rank=6 distributed_init_method=tcp://75.12.36.64:29500 backend=nccl
+[/pytorch/third_party/gloo/gloo/transport/tcp/debug_logger.cc:9] ERROR failed to connect, willRetry=1, retry=1, retryLimit=3, rank=13, size=16, local=[75.12.36.65]:47306, remote=[75.12.36.65]:45489$13, error=SO_ERROR: Connection refused, remote=[75.12.36.65]:45489$13
+[/pytorch/third_party/gloo/gloo/transport/tcp/debug_logger.cc:9] ERROR failed to connect, willRetry=1, retry=2, retryLimit=3, rank=13, size=16, local=[75.12.36.65]:48330, remote=[75.12.36.65]:45489$13, error=SO_ERROR: Connection refused, remote=[75.12.36.65]:45489$13
+[/pytorch/third_party/gloo/gloo/transport/tcp/debug_logger.cc:9] ERROR failed to connect, willRetry=1, retry=3, retryLimit=3, rank=13, size=16, local=[75.12.36.65]:52426, remote=[75.12.36.65]:45489$13, error=SO_ERROR: Connection refused, remote=[75.12.36.65]:45489$13
+[/pytorch/third_party/gloo/gloo/transport/tcp/debug_logger.cc:9] ERROR failed to connect, willRetry=1, retry=1, retryLimit=3, rank=9, size=16, local=[75.12.36.65]:52938, remote=[75.12.36.65]:45489$9, error=SO_ERROR: Connection refused, remote=[75.12.36.65]:45489$9
+[/pytorch/third_party/gloo/gloo/transport/tcp/debug_logger.cc:9] ERROR failed to connect, willRetry=0, retry=4, retryLimit=3, rank=13, size=16, local=[75.12.36.65]:53962, remote=[75.12.36.65]:45489$13, error=SO_ERROR: Connection refused, remote=[75.12.36.65]:45489$13
+[/pytorch/third_party/gloo/gloo/transport/tcp/debug_logger.cc:9] ERROR failed to connect, willRetry=1, retry=2, retryLimit=3, rank=9, size=16, local=[75.12.36.65]:56010, remote=[75.12.36.65]:45489$9, error=SO_ERROR: Connection refused, remote=[75.12.36.65]:45489$9
+[/pytorch/third_party/gloo/gloo/transport/tcp/debug_logger.cc:9] ERROR failed to connect, willRetry=1, retry=3, retryLimit=3, rank=9, size=16, local=[75.12.36.65]:58570, remote=[75.12.36.65]:45489$9, error=SO_ERROR: Connection refused, remote=[75.12.36.65]:45489$9
+[/pytorch/third_party/gloo/gloo/transport/tcp/debug_logger.cc:9] ERROR failed to connect, willRetry=0, retry=4, retryLimit=3, rank=9, size=16, local=[75.12.36.65]:60106, remote=[75.12.36.65]:45489$9, error=SO_ERROR: Connection refused, remote=[75.12.36.65]:45489$9
+[rank13]:[E224 05:47:56.213931812 ProcessGroupGloo.cpp:66] Gloo connectFullMesh failed with [/pytorch/third_party/gloo/gloo/transport/tcp/pair.cc:152] timed out connecting: SO_ERROR: Connection refused, remote=[75.12.36.65]:45489$13
+[rank9]:[E224 05:47:56.214104787 ProcessGroupGloo.cpp:66] Gloo connectFullMesh failed with [/pytorch/third_party/gloo/gloo/transport/tcp/pair.cc:152] timed out connecting: SO_ERROR: Connection refused, remote=[75.12.36.65]:45489$9
+ERROR 02-24 05:47:56 [multiproc_executor.py:783] WorkerProc failed to start.
+ERROR 02-24 05:47:56 [multiproc_executor.py:783] Traceback (most recent call last):
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/executor/multiproc_executor.py", line 754, in worker_main
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     worker = WorkerProc(*args, **kwargs)
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     return func(*args, **kwargs)
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]            ^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/executor/multiproc_executor.py", line 571, in __init__
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     self.worker.init_device()
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/worker_base.py", line 322, in init_device
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     self.worker.init_device()  # type: ignore
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     ^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     return func(*args, **kwargs)
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]            ^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py", line 263, in init_device
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     init_worker_distributed_environment(
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py", line 1125, in init_worker_distributed_environment
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     init_distributed_environment(
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/distributed/parallel_state.py", line 1346, in init_distributed_environment
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     _WORLD = init_world_group(ranks, local_rank, backend)
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/distributed/parallel_state.py", line 1133, in init_world_group
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     return GroupCoordinator(
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]            ^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/distributed/parallel_state.py", line 339, in __init__
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     cpu_group = torch.distributed.new_group(ranks, backend="gloo")
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/torch/distributed/c10d_logger.py", line 97, in wrapper
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     func_return = func(*args, **kwargs)
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]                   ^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/torch/distributed/distributed_c10d.py", line 5374, in new_group
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     return _new_group_with_tag(
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]            ^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/torch/distributed/distributed_c10d.py", line 5465, in _new_group_with_tag
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     pg, pg_store = _new_process_group_helper(
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/torch/distributed/distributed_c10d.py", line 2043, in _new_process_group_helper
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     backend_class = ProcessGroupGloo(
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]                     ^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:56 [multiproc_executor.py:783] RuntimeError: Gloo connectFullMesh failed with [/pytorch/third_party/gloo/gloo/transport/tcp/pair.cc:152] timed out connecting: SO_ERROR: Connection refused, remote=[75.12.36.65]:45489$9
+ERROR 02-24 05:47:56 [multiproc_executor.py:783] WorkerProc failed to start.
+ERROR 02-24 05:47:56 [multiproc_executor.py:783] Traceback (most recent call last):
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/executor/multiproc_executor.py", line 754, in worker_main
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     worker = WorkerProc(*args, **kwargs)
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     return func(*args, **kwargs)
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]            ^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/executor/multiproc_executor.py", line 571, in __init__
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     self.worker.init_device()
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/worker_base.py", line 322, in init_device
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     self.worker.init_device()  # type: ignore
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     ^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     return func(*args, **kwargs)
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]            ^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py", line 263, in init_device
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     init_worker_distributed_environment(
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py", line 1125, in init_worker_distributed_environment
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     init_distributed_environment(
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/distributed/parallel_state.py", line 1346, in init_distributed_environment
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     _WORLD = init_world_group(ranks, local_rank, backend)
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/distributed/parallel_state.py", line 1133, in init_world_group
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     return GroupCoordinator(
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]            ^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/vllm/distributed/parallel_state.py", line 339, in __init__
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     cpu_group = torch.distributed.new_group(ranks, backend="gloo")
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/torch/distributed/c10d_logger.py", line 97, in wrapper
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     func_return = func(*args, **kwargs)
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]                   ^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/torch/distributed/distributed_c10d.py", line 5374, in new_group
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     return _new_group_with_tag(
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]            ^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/torch/distributed/distributed_c10d.py", line 5465, in _new_group_with_tag
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     pg, pg_store = _new_process_group_helper(
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]   File "/usr/local/lib/python3.12/dist-packages/torch/distributed/distributed_c10d.py", line 2043, in _new_process_group_helper
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]     backend_class = ProcessGroupGloo(
+ERROR 02-24 05:47:56 [multiproc_executor.py:783]                     ^^^^^^^^^^^^^^^^^
+ERROR 02-24 05:47:56 [multiproc_executor.py:783] RuntimeError: Gloo connectFullMesh failed with [/pytorch/third_party/gloo/gloo/transport/tcp/pair.cc:152] timed out connecting: SO_ERROR: Connection refused, remote=[75.12.36.65]:45489$13
+(EngineCore_DP0 pid=201) ERROR 02-24 05:48:03 [core.py:1029] EngineCore failed to start.
+(EngineCore_DP0 pid=201) ERROR 02-24 05:48:03 [core.py:1029] Traceback (most recent call last):
+(EngineCore_DP0 pid=201) ERROR 02-24 05:48:03 [core.py:1029]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py", line 1019, in run_engine_core
+(EngineCore_DP0 pid=201) ERROR 02-24 05:48:03 [core.py:1029]     engine_core = EngineCoreProc(*args, engine_index=dp_rank, **kwargs)
+(EngineCore_DP0 pid=201) ERROR 02-24 05:48:03 [core.py:1029]                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore_DP0 pid=201) ERROR 02-24 05:48:03 [core.py:1029]   File "/usr/local/lib/python3.12/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore_DP0 pid=201) ERROR 02-24 05:48:03 [core.py:1029]     return func(*args, **kwargs)
+(EngineCore_DP0 pid=201) ERROR 02-24 05:48:03 [core.py:1029]            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore_DP0 pid=201) ERROR 02-24 05:48:03 [core.py:1029]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py", line 763, in __init__
+(EngineCore_DP0 pid=201) ERROR 02-24 05:48:03 [core.py:1029]     super().__init__(
+(EngineCore_DP0 pid=201) ERROR 02-24 05:48:03 [core.py:1029]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py", line 107, in __init__
+(EngineCore_DP0 pid=201) ERROR 02-24 05:48:03 [core.py:1029]     self.model_executor = executor_class(vllm_config)
+(EngineCore_DP0 pid=201) ERROR 02-24 05:48:03 [core.py:1029]                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore_DP0 pid=201) ERROR 02-24 05:48:03 [core.py:1029]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/executor/multiproc_executor.py", line 98, in __init__
+(EngineCore_DP0 pid=201) ERROR 02-24 05:48:03 [core.py:1029]     super().__init__(vllm_config)
+(EngineCore_DP0 pid=201) ERROR 02-24 05:48:03 [core.py:1029]   File "/usr/local/lib/python3.12/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore_DP0 pid=201) ERROR 02-24 05:48:03 [core.py:1029]     return func(*args, **kwargs)
+(EngineCore_DP0 pid=201) ERROR 02-24 05:48:03 [core.py:1029]            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore_DP0 pid=201) ERROR 02-24 05:48:03 [core.py:1029]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/executor/abstract.py", line 103, in __init__
+(EngineCore_DP0 pid=201) ERROR 02-24 05:48:03 [core.py:1029]     self._init_executor()
+(EngineCore_DP0 pid=201) ERROR 02-24 05:48:03 [core.py:1029]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/executor/multiproc_executor.py", line 166, in _init_executor
+(EngineCore_DP0 pid=201) ERROR 02-24 05:48:03 [core.py:1029]     self.workers = WorkerProc.wait_for_ready(unready_workers)
+(EngineCore_DP0 pid=201) ERROR 02-24 05:48:03 [core.py:1029]                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore_DP0 pid=201) ERROR 02-24 05:48:03 [core.py:1029]   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/executor/multiproc_executor.py", line 680, in wait_for_ready
+(EngineCore_DP0 pid=201) ERROR 02-24 05:48:03 [core.py:1029]     raise e from None
+(EngineCore_DP0 pid=201) ERROR 02-24 05:48:03 [core.py:1029] Exception: WorkerProc initialization failed due to an exception in a background process. See stack trace for root cause.
+(EngineCore_DP0 pid=201) Process EngineCore_DP0:
+(EngineCore_DP0 pid=201) Traceback (most recent call last):
+(EngineCore_DP0 pid=201)   File "/usr/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+(EngineCore_DP0 pid=201)     self.run()
+(EngineCore_DP0 pid=201)   File "/usr/lib/python3.12/multiprocessing/process.py", line 108, in run
+(EngineCore_DP0 pid=201)     self._target(*self._args, **self._kwargs)
+(EngineCore_DP0 pid=201)   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py", line 1033, in run_engine_core
+(EngineCore_DP0 pid=201)     raise e
+(EngineCore_DP0 pid=201)   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py", line 1019, in run_engine_core
+(EngineCore_DP0 pid=201)     engine_core = EngineCoreProc(*args, engine_index=dp_rank, **kwargs)
+(EngineCore_DP0 pid=201)                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore_DP0 pid=201)   File "/usr/local/lib/python3.12/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore_DP0 pid=201)     return func(*args, **kwargs)
+(EngineCore_DP0 pid=201)            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore_DP0 pid=201)   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py", line 763, in __init__
+(EngineCore_DP0 pid=201)     super().__init__(
+(EngineCore_DP0 pid=201)   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py", line 107, in __init__
+(EngineCore_DP0 pid=201)     self.model_executor = executor_class(vllm_config)
+(EngineCore_DP0 pid=201)                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore_DP0 pid=201)   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/executor/multiproc_executor.py", line 98, in __init__
+(EngineCore_DP0 pid=201)     super().__init__(vllm_config)
+(EngineCore_DP0 pid=201)   File "/usr/local/lib/python3.12/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore_DP0 pid=201)     return func(*args, **kwargs)
+(EngineCore_DP0 pid=201)            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore_DP0 pid=201)   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/executor/abstract.py", line 103, in __init__
+(EngineCore_DP0 pid=201)     self._init_executor()
+(EngineCore_DP0 pid=201)   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/executor/multiproc_executor.py", line 166, in _init_executor
+(EngineCore_DP0 pid=201)     self.workers = WorkerProc.wait_for_ready(unready_workers)
+(EngineCore_DP0 pid=201)                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore_DP0 pid=201)   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/executor/multiproc_executor.py", line 680, in wait_for_ready
+(EngineCore_DP0 pid=201)     raise e from None
+(EngineCore_DP0 pid=201) Exception: WorkerProc initialization failed due to an exception in a background process. See stack trace for root cause.
+(APIServer pid=1) Traceback (most recent call last):
+(APIServer pid=1)   File "/usr/local/bin/vllm", line 10, in <module>
+(APIServer pid=1)     sys.exit(main())
+(APIServer pid=1)              ^^^^^^
+(APIServer pid=1)   File "/usr/local/lib/python3.12/dist-packages/vllm/entrypoints/cli/main.py", line 73, in main
+(APIServer pid=1)     args.dispatch_function(args)
+(APIServer pid=1)   File "/usr/local/lib/python3.12/dist-packages/vllm/entrypoints/cli/serve.py", line 112, in cmd
+(APIServer pid=1)     uvloop.run(run_server(args))
+(APIServer pid=1)   File "/usr/local/lib/python3.12/dist-packages/uvloop/__init__.py", line 96, in run
+(APIServer pid=1)     return __asyncio.run(
+(APIServer pid=1)            ^^^^^^^^^^^^^^
+(APIServer pid=1)   File "/usr/lib/python3.12/asyncio/runners.py", line 195, in run
+(APIServer pid=1)     return runner.run(main)
+(APIServer pid=1)            ^^^^^^^^^^^^^^^^
+(APIServer pid=1)   File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
+(APIServer pid=1)     return self._loop.run_until_complete(task)
+(APIServer pid=1)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1)   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+(APIServer pid=1)   File "/usr/local/lib/python3.12/dist-packages/uvloop/__init__.py", line 48, in wrapper
+(APIServer pid=1)     return await main
+(APIServer pid=1)            ^^^^^^^^^^
+(APIServer pid=1)   File "/usr/local/lib/python3.12/dist-packages/vllm/entrypoints/openai/api_server.py", line 471, in run_server
+(APIServer pid=1)     await run_server_worker(listen_address, sock, args, **uvicorn_kwargs)
+(APIServer pid=1)   File "/usr/local/lib/python3.12/dist-packages/vllm/entrypoints/openai/api_server.py", line 490, in run_server_worker
+(APIServer pid=1)     async with build_async_engine_client(
+(APIServer pid=1)                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1)   File "/usr/lib/python3.12/contextlib.py", line 210, in __aenter__
+(APIServer pid=1)     return await anext(self.gen)
+(APIServer pid=1)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1)   File "/usr/local/lib/python3.12/dist-packages/vllm/entrypoints/openai/api_server.py", line 96, in build_async_engine_client
+(APIServer pid=1)     async with build_async_engine_client_from_engine_args(
+(APIServer pid=1)                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1)   File "/usr/lib/python3.12/contextlib.py", line 210, in __aenter__
+(APIServer pid=1)     return await anext(self.gen)
+(APIServer pid=1)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1)   File "/usr/local/lib/python3.12/dist-packages/vllm/entrypoints/openai/api_server.py", line 137, in build_async_engine_client_from_engine_args
+(APIServer pid=1)     async_llm = AsyncLLM.from_vllm_config(
+(APIServer pid=1)                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1)   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/async_llm.py", line 223, in from_vllm_config
+(APIServer pid=1)     return cls(
+(APIServer pid=1)            ^^^^
+(APIServer pid=1)   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/async_llm.py", line 152, in __init__
+(APIServer pid=1)     self.engine_core = EngineCoreClient.make_async_mp_client(
+(APIServer pid=1)                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1)   File "/usr/local/lib/python3.12/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(APIServer pid=1)     return func(*args, **kwargs)
+(APIServer pid=1)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1)   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core_client.py", line 125, in make_async_mp_client
+(APIServer pid=1)     return AsyncMPClient(*client_args)
+(APIServer pid=1)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1)   File "/usr/local/lib/python3.12/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(APIServer pid=1)     return func(*args, **kwargs)
+(APIServer pid=1)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1)   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core_client.py", line 839, in __init__
+(APIServer pid=1)     super().__init__(
+(APIServer pid=1)   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core_client.py", line 493, in __init__
+(APIServer pid=1)     with launch_core_engines(vllm_config, executor_class, log_stats) as (
+(APIServer pid=1)          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=1)   File "/usr/lib/python3.12/contextlib.py", line 144, in __exit__
+(APIServer pid=1)     next(self.gen)
+(APIServer pid=1)   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/utils.py", line 925, in launch_core_engines
+(APIServer pid=1)     wait_for_engine_startup(
+(APIServer pid=1)   File "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/utils.py", line 984, in wait_for_engine_startup
+(APIServer pid=1)     raise RuntimeError(
+(APIServer pid=1) RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {}
